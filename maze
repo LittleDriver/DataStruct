@@ -1,0 +1,137 @@
+#include<assert.h>
+#include<stack>
+//实现迷宫问题   1.二维数组存放数据  2.不要动态输入，会给调试带来麻烦，使用读文件的方式
+//                
+#define N 10
+void GetMaze(int* a, int n)
+{
+	assert(a);
+	FILE* fout = fopen("D:\\比特科技\\c++\\MazeMap.txt", "r");
+	assert(fout);
+
+	for (int i = 0; i < n; i++)
+	{
+		for (int j = 0; j < n; )
+		{
+			char ch = getc(fout);
+			if (ch == '0' || ch == '1')
+			{
+				a[i*n + j] = ch - '0';
+				j++;
+			}
+		}
+	}
+}
+
+void printMazeMap(int* a,int n)
+{
+	assert(a);
+	for (int i = 0; i < n; i++)
+	{
+		for (int j = 0; j < n; j++)
+		{
+			cout << a[i*n + j] << " ";
+		}
+		cout << endl;
+	}
+	cout << endl;
+}
+
+struct pos
+{
+	int _row;
+	int _col;
+};
+
+bool CheckInAccess(int* a, int n, const pos& next)
+{
+	assert(a);
+	int row = next._row;
+	int col = next._col;
+
+	if (row >= 0 && row < n && col >= 0 && col < n && a[row*n + col] == 0)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool SearchMazePath(int* a, int n,pos entry,stack<pos>& paths)   //坐标不停的压栈，寻找合适的路径，当碰见死路开始pop元素，走上另一路径，当寻找到出口，程序
+{                                                                 //return true;当没有通路，pop元素，直到pop到栈里面没有数据，认为没有路径是正确的 return false;
+	assert(a);
+	paths.push(entry);
+
+	while (!paths.empty())
+	{
+		pos cur = paths.top();
+
+		pos next = cur;
+
+		a[cur._row*n + cur._col] = 2;
+
+		if (cur._row == N-1)
+		{
+			return true;
+		}
+
+		//上
+		next._row--;
+		if (CheckInAccess((int*)a, n, next) )      //检查是否为入口
+		{
+			paths.push(next);
+			continue;
+		}
+
+		
+		//下
+		next = cur;
+		next._row++;
+		if (CheckInAccess((int*)a, n, next))
+		{
+			paths.push(next);
+			continue;
+		}
+
+		//左
+		next = cur;
+		next._col--;
+		if (CheckInAccess((int*)a, n, next))
+		{
+			paths.push(next);
+			continue;
+		}
+
+		//右
+		next = cur;
+		next._col++;
+		if (CheckInAccess((int*)a, n, next))
+		{
+			paths.push(next);
+			continue;
+		}
+
+		paths.pop();
+	}
+	return false;
+}
+
+int main()
+{
+	int a[N][N] = {};
+
+	GetMaze((int*)a,10);
+
+	printMazeMap((int*)a, 10);
+
+	stack<pos> paths;
+	pos entry = { 2, 0 };
+	cout<<"是否有通路"<<SearchMazePath((int*)a, 10,entry,paths)<<endl;
+
+	printMazeMap((int*)a, 10);
+	system("pause");
+
+	return 0;
+}
