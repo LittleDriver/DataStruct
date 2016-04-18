@@ -1,0 +1,208 @@
+#pragma once
+#include<iostream>
+using namespace std;
+#include<assert.h>
+
+
+enum Type
+{
+	HEAD,
+	VALUE,
+	SUB,
+};
+
+
+struct generaalizedNode
+{
+	generaalizedNode(Type type = HEAD, char value = 0)
+	      :_Type(type)
+	      , _next(NULL)
+	{
+		if (_Type == VALUE)
+		{
+			_value = value;
+		}
+		else if (_Type == SUB)
+		{
+			_subLink = NULL;
+		}
+	}
+
+	Type _Type;
+	generaalizedNode* _next;
+
+	union
+	{
+		char _value;
+		generaalizedNode* _subLink;
+	};
+};
+
+class generaalized
+{
+public:
+	generaalized()
+		:_head(NULL)
+	{}
+	generaalized(const char* str)
+		:_head(NULL)
+	{
+		_head = _createNode(str);
+	}
+
+	void print()
+	{
+		_print(_head);
+		cout << endl;
+	}
+
+	size_t size()
+	{
+		return _size(_head);
+	}
+
+	size_t Depth()
+	{
+		return _Depth(_head);
+	}
+protected:
+
+	size_t _Depth(generaalizedNode* head) //---------------------------------------
+	{
+		if (head == NULL)
+		{
+			return 0;
+		}
+		generaalizedNode* cur = head;
+		size_t depth = 1;
+		while (cur)
+		{
+			if (cur->_Type == SUB)
+			{
+				size_t subDepth = _Depth(cur->_subLink);
+				if (subDepth + 1 > depth)
+				{
+					depth = subDepth + 1;
+				}
+			}
+			cur = cur->_next;
+		}
+		return depth;
+	}
+
+	size_t _size(generaalizedNode* head)
+	{
+		if (head == NULL)
+		{
+			return 0;
+		}
+		generaalizedNode* cur = head;
+		static size_t size = 0;
+		while (cur)
+		{
+			if (cur->_Type == VALUE)
+			{
+				++size;
+			}
+			else if (cur->_Type == SUB)
+			{
+				_size(cur->_subLink);
+			}
+			cur = cur->_next;
+		}
+		return size;
+	}
+
+	void _print(generaalizedNode* head)
+	{
+		if (head == NULL)
+		{
+			return;
+		}
+		generaalizedNode* cur = head;
+
+		while (cur)
+		{
+			if (cur->_Type == HEAD)
+			{
+				cout << "(";
+			}
+			else if (cur->_Type == VALUE)
+			{
+				cout << cur->_value;
+				if (cur->_next)
+				{
+					cout << ",";
+				}
+			}
+			else if (cur->_Type == SUB)
+			{
+				_print(cur->_subLink);
+				if (cur->_next)
+				{
+					cout << ",";
+				}
+			}
+			cur = cur->_next;
+		}
+		cout << ')';
+	}
+
+
+	bool _isvalue(const char ch)
+	{
+		if ((ch >= '0'&&ch < '9') || (ch >= 'a'&&ch < 'z')
+			|| (ch >= 'A'&& ch < 'Z'))
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	generaalizedNode* _createNode(const char*& str)
+	{
+		if (*str == '(')
+		{
+			++str;
+		}
+
+		generaalizedNode* head = new generaalizedNode(HEAD);
+		generaalizedNode* cur = head;
+
+		while (*str)
+		{
+			if (_isvalue(*str))
+			{
+				cur->_next = new generaalizedNode(VALUE, *str);
+				cur = cur->_next;
+				++str;
+			}
+			else if (*str == '(')
+			{
+				generaalizedNode* subNode = new generaalizedNode(SUB);
+				cur->_next = subNode;
+				cur = cur->_next;
+
+				subNode->_subLink = _createNode(str);
+				//++str;
+			}
+			else if (*str == ')')
+			{
+				++str;
+				return head;
+			}
+			else
+			{
+				++str;
+			}
+		}
+		cout << "false" << endl;
+		assert(false);
+		return head;
+	}
+protected:
+	generaalizedNode* _head;
+};
