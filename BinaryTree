@@ -1,0 +1,209 @@
+#pragma once
+#include<iostream>
+using namespace std;
+#include<queue>
+
+
+template<class T>
+struct BinaryTreeNode
+{
+	BinaryTreeNode(const T& x)
+	:_data(x)
+	, _left(NULL)
+	, _right(NULL)
+	{}
+
+
+	T _data;
+	BinaryTreeNode<T>* _left;
+	BinaryTreeNode<T>* _right;
+};
+
+template<class T>
+class BinaryTree
+{
+	typedef BinaryTreeNode<T> Node;
+public:
+	BinaryTree()
+		:_root(NULL)
+	{}
+	BinaryTree(const T* a, size_t size, const T& invaild)
+	{
+		size_t index = 0;
+		_root = _BinaryTree(a, size, index, invaild);
+	}
+
+	~BinaryTree()
+	{}
+
+	void prevOrder()   //前序遍历
+	{
+		_prevOrder(_root);
+		cout << endl;
+	}
+
+	void inOrder()     //中序遍历
+	{
+		_inOrder(_root);
+		cout << endl;
+	}
+
+	void nextOrder()    //后序遍历
+	{
+		_nextOrder(_root);
+		cout << endl;
+
+	}
+
+	void levelOrder()
+	{
+		_levelOrder(_root);
+	}
+
+	size_t size()
+	{
+		return _size(_root);
+	}
+
+	size_t Depth()
+	{
+		return _Depth(_root);
+	}
+
+	size_t leafsize()
+	{
+		return _leafsize(_root);
+	}
+
+	
+
+protected:
+	Node* _BinaryTree(const T* a, size_t size, size_t& index, const T& invaild)    //必须要给index加引用
+	{
+		Node* root = NULL;
+		if (index < size && a[index] != invaild)
+		{
+			root = new Node(a[index]);
+			root->_left = _BinaryTree(a, size, ++index, invaild);
+			root->_right = _BinaryTree(a, size, ++index, invaild);
+		}
+		return root;
+	}
+	
+
+	void _prevOrder(Node* root)
+	{
+		//Node* cur = root;
+		if (root == NULL)
+		{
+			return;
+		}
+		cout << root->_data << " ";
+		_prevOrder(root->_left);
+		_prevOrder(root->_right);
+	}
+
+	void _inOrder(Node* root)
+	{
+		if (root == NULL)
+		{
+			return;
+		}
+		_inOrder(root->_left);
+		cout << root->_data << " ";
+		_inOrder(root->_right);
+	}
+
+	void _nextOrder(Node* root)
+	{
+		if (root == NULL)
+		{
+			return;
+		}
+		_nextOrder(root->_left);
+		_nextOrder(root->_right);
+		cout << root->_data << " ";
+	}
+
+	size_t _size(Node* root)
+	{
+		if (root == NULL)
+		{
+			return 0;
+		}
+		//左子树加上右子树加上根节点
+
+		return _size(root->_left) + _size(root->_right) + 1;
+	}
+
+	//size_t _Depth(Node* root)
+	//{
+	//	if (root == NULL)
+	//	{
+	//		return 0;
+	//	}
+	//	return _Depth(root->_left) > _Depth(root->_right) ? _Depth(root->_left)+1 : _Depth(root->_right)+1;   //效率太低
+	//}
+
+	size_t _Depth(Node* root)
+	{
+		if (root == NULL)
+		{
+			return 0;
+		}
+		int leftdepth = _Depth(root->_left);   //---------------------------------
+		int rightdepth = _Depth(root->_right);
+
+		return leftdepth > rightdepth ? leftdepth+1 : rightdepth+1;
+	}
+
+	size_t _leafsize(Node* root)
+	{
+		static size_t size = 0;
+		if (root == NULL)
+		{
+			return 0;
+		}
+
+		if (root->_left == NULL && root->_right == NULL)
+		{
+			++size;
+			return size;
+		}
+		
+		_leafsize(root->_left);
+		_leafsize(root->_right);
+
+		return size;
+	}
+
+	void _levelOrder(Node* root)
+	{
+		if (root == NULL)
+		{
+			return;
+		}
+		queue<Node*> qTree;
+		qTree.push(root);
+		while (!qTree.empty())
+		{
+			Node* cur = qTree.front();
+			qTree.pop();
+			cout << cur->_data << " ";
+			if (cur->_left)
+			{
+				qTree.push(cur->_left);
+			}
+
+			if (cur->_right)
+			{
+				qTree.push(cur->_right);
+			}
+		}
+		cout << endl;
+	}
+	
+
+protected:
+	Node* _root;
+};
