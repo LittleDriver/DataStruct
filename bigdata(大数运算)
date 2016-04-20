@@ -1,0 +1,544 @@
+#pragma once
+#include<iostream>
+#include<string>
+#include<assert.h>
+using namespace std;
+
+
+typedef long long INT64;
+#define MIN_INT64 0x8000000000000000
+#define MAX_INT64 0x7FFFFFFFFFFFFFFF
+
+
+class BigData
+{
+public:
+	BigData(INT64 x);
+	BigData(const char* cData);
+
+	BigData operator+(const BigData& bigdata);
+	BigData operator-(const BigData& bigdata);
+	BigData operator*(const BigData& bigdata);
+	BigData operator/(const BigData& bigdata);
+
+protected:
+	string Add(string left, string right);
+	string Sub(string left, string right);
+	string Mul(string left, string right);
+	string Div(string left, string right);
+
+	friend ostream& operator<<(ostream& out, const BigData& bigdata);
+	bool isOverFlowINT64()const;
+	bool IsLeftStrBig(const char* pLeft, int Lsize, const char* pRight, int Rsize);
+	char subloop(char* pLeft, int Lsize, char* pRight, int Rsize);
+	void _INIT64ToString();
+
+private:
+	INT64 _value;
+	string _strData;
+};
+
+#include"BigData.h"
+
+BigData::BigData(INT64 x)
+   :_value(x)
+{
+	_INIT64ToString();
+}
+
+
+BigData::BigData(const char* cData)
+{
+	if (cData == NULL)
+	{
+		assert(false);
+		return;
+	}
+
+	char* ptr = (char*)cData;
+	char cSymbol = cData[0];   //“0000”  ""
+
+	if (cSymbol == '-' || cSymbol == '+')
+	{
+		ptr++;
+	}
+	else if (cSymbol >= '0' && cSymbol <= '9')
+	{
+		cSymbol = '+';
+	}
+	else
+	{
+		return;
+	}
+
+	while (*ptr == '0')
+	{
+		++ptr;
+	}
+
+	_strData.resize(strlen(cData) + 1);
+	_strData[0] = cSymbol;
+
+	_value = 0;
+	int iCount = 1;
+
+	while (*ptr >= '0' && *ptr <= '9')
+	{
+		_value = _value * 10 + (*ptr - '0');
+		_strData[iCount++] = *ptr;
+		++ptr;
+	}
+
+	_strData.resize(iCount);
+
+	if (cSymbol == '-')
+	{
+		_value = 0 - _value;
+	}
+}
+
+void BigData::_INIT64ToString()
+{
+	char cSymbol = '+';
+	if (_value < 0)
+	{
+		cSymbol = '-';
+		//----------------------------------------------------
+	}
+
+	INT64 tmp = _value;
+	_strData.append(1, cSymbol);
+
+	while (tmp)
+	{
+		_strData.append(1, tmp % 10 + '0');
+		tmp /= 10;
+	}
+
+	char* pLeft = (char*)_strData.c_str() + 1;
+	char* pRight = pLeft + _strData.size() - 2;
+
+	while (pLeft < pRight)
+	{
+		char cmp = *pLeft;
+		*pLeft = *pRight;
+		*pRight = cmp;
+		pLeft++;
+		pRight--;
+	}
+}
+
+bool BigData::isOverFlowINT64()const
+{
+	string tmp("9223372036854775807");
+
+	if (_strData[0] == '-')
+	{
+		tmp = "-9223372036854775808";
+	}
+
+	if (_strData.size() < tmp.size())
+	{
+		return true;
+	}
+	else if (_strData.size() == tmp.size() && _strData<tmp)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+
+ostream& operator<<(ostream& out, const BigData& bigdata)
+{
+
+	if (bigdata.isOverFlowINT64())
+	{
+		out << bigdata._value;
+		return out;
+	}
+	else
+	{
+		char* pstr = (char*)bigdata._strData.c_str();
+
+		if (pstr[0] == '+')
+		{
+			pstr++;
+		}
+		out << pstr;
+	}
+	return out;
+}
+
+
+BigData BigData::operator+(const BigData& bigdata)
+{
+	if (isOverFlowINT64() && bigdata.isOverFlowINT64())
+	{
+		if (_strData[0] != bigdata._strData[0])
+		{
+			return (_value + bigdata._value);
+		}
+		else
+		{
+			INT64 tmp = MIN_INT64;
+			if (_value > 0 && MAX_INT64 - _value >= bigdata._value
+				|| _value < 0 && tmp - _value <= bigdata._value)    //--------------
+			{
+				return (_value + bigdata._value);
+			}
+		}
+	}
+
+	if (_strData[0] == bigdata._strData[0])    //同号溢出的情况，调用jianfa------------------------------
+	{
+		return BigData(Add(_strData, bigdata._strData).c_str());   
+	}
+
+	return BigData(Sub(_strData, bigdata._strData).c_str()); //异号溢出的情况，调用jiafa
+}
+
+BigData BigData::operator-(const BigData& bigdata)
+{
+	if (isOverFlowINT64() && bigdata.isOverFlowINT64())
+	{
+		if (_strData[0] == bigdata._strData[0])
+		{
+			return BigData(_value - bigdata._value);
+		}
+		else
+		{
+			if ((_value > 0 && MAX_INT64 + bigdata._value >= _value) ||
+				(_value < 0 && MIN_INT64 + bigdata._value <= _value))
+			{
+				return BigData(_value - bigdata._value);
+			}
+		}
+	}
+
+	if (_strData[0] != bigdata._strData[0])
+	{
+		return BigData(Add(_strData,bigdata._strData).c_str());
+	}
+
+	return BigData(Sub(_strData, bigdata._strData).c_str());
+}
+
+BigData BigData::operator*(const BigData& bigdata)
+{
+	if (_value == 0 || bigdata._value == 0)
+	{
+		return BigData(INT64(0));
+	}
+	if (isOverFlowINT64() && bigdata.isOverFlowINT64())
+	{
+		if (_strData[0] == bigdata._strData[0])
+		{
+			if ((_value > 0 && MAX_INT64 / _value >= bigdata._value) ||
+				(_value < 0 && MIN_INT64 / _value <= bigdata._value))    //  -10 -2 = 5 
+			{
+				return BigData(_value * bigdata._value);
+			}
+		}
+		else
+		{
+			//-10 2 -5
+			if ((_value > 0 && MIN_INT64 / _value <= bigdata._value) ||      //-10  2  = -5 <= -3 
+				(_value < 0 && MIN_INT64 / _value >= bigdata._value))        //-10 -2  =  5  >= 3
+			{
+				return BigData(_value * bigdata._value);
+			}
+		}
+	}
+
+	return BigData(Mul(_strData, bigdata._strData).c_str());
+}
+
+
+BigData BigData::operator/(const BigData& bigdata)
+{
+	if (bigdata._strData[1] == '0')      //处理除数为0的情况
+	{
+		assert(false);
+	}
+
+	if (isOverFlowINT64() && bigdata.isOverFlowINT64())   //处理不溢出的情况
+	{
+		return BigData(_value / bigdata._value);
+	}
+
+	if (_strData.size() < bigdata._strData.size() ||    //左边小于右边的情况
+		(_strData.size() == bigdata._strData.size()
+		&& strcmp(_strData.c_str() + 1, bigdata._strData.c_str() + 1) < 0))
+	{
+		return BigData(INT64(0));
+	}
+
+	if (bigdata._strData == "-1" || bigdata._strData == "+1")    //处理除数为+1 -1的情况
+	{
+		string ret = _strData;
+
+		if (_strData[0] != bigdata._strData[0])
+		{
+			ret[0] = '-';
+		}
+		return BigData(ret.c_str());
+	}
+
+	if (_strData.size() == bigdata._strData.size()              //处理除数与被除数一样的情况（除过符号位）
+		&& strcmp(_strData.c_str() + 1, bigdata._strData.c_str() + 1) == 0)
+	{
+		string ret = "+1";
+
+		if (_strData[0] != bigdata._strData[0])
+		{
+			ret[0] = '-';
+		}
+
+		return BigData(ret.c_str());
+	}
+
+	return BigData(Div(_strData, bigdata._strData).c_str());
+}
+
+
+string BigData::Add(string left, string right)
+{
+
+	int leftsize = left.size();
+	int rightsize = right.size();
+
+	if (leftsize < rightsize)
+	{
+		swap(left, right);
+		swap(leftsize, rightsize);
+	}
+
+	string iRet;
+	iRet.resize(leftsize + 1);
+	iRet[0] = left[0];
+    int step = 0;
+
+	for (int i = 1; i < leftsize; i++)
+	{
+		char cRet = left[leftsize - i] - '0' + step;
+
+		if (i < rightsize)
+		{
+			cRet += right[rightsize - i] - '0';
+		}
+
+		iRet[leftsize - i + 1] = cRet % 10 + '0';
+
+		step = cRet/10;
+	}
+	iRet[1] = step + '0';
+
+	return iRet;
+
+}
+
+
+string BigData::Sub(string left, string right)
+{
+	int leftsize = left.size();
+	int rightsize = right.size();
+
+	char cSymbol = '+';
+	//10 - 11 = -1
+	//-3 - -7 = 4
+	if (leftsize < rightsize || leftsize == rightsize && left<right)
+	{
+		swap(left, right);
+		swap(leftsize, rightsize);
+		if (cSymbol == '+')
+		{
+			cSymbol = '-';
+		}
+		else
+		{
+			cSymbol = '+';
+		}
+	}
+
+	string strRet;
+	strRet.resize(left.size());
+	strRet[0] = cSymbol;
+
+
+	for (int Idx = 1; Idx < leftsize; ++Idx)
+	{
+		char cRet = left[leftsize - Idx] - '0';
+		if (Idx < rightsize)
+		{
+			cRet -= right[rightsize - Idx] - '0';
+		}
+
+		if (cRet < 0)
+		{
+			left[leftsize - Idx - 1] -= 1;
+			cRet += 10;
+		}
+
+		strRet[leftsize - Idx] = cRet + '0';
+	}
+
+	return strRet;
+}
+
+
+string BigData::Mul(string left, string right)
+{
+	char cSymbol = '+';
+	if (left[0] != right[0])
+	{
+		cSymbol = '-';
+	}
+	int leftsize = left.size();
+	int rightsize = right.size();
+
+	if (leftsize < rightsize)
+	{
+		swap(left, right);
+		swap(leftsize, rightsize);
+	}
+
+	string sRet;
+	sRet.assign(leftsize + rightsize - 1,'0');
+	sRet[0] = cSymbol;
+	int iDataLen = sRet.size();
+	int ioffset = 0;
+
+	for (int iLIdx = 1; iLIdx < leftsize; iLIdx++)
+	{
+		char cLeft = left[leftsize - iLIdx] - '0';
+		char cStep = 0;
+		if (cLeft == '0')
+		{
+			ioffset++;
+			continue;
+		}
+
+		for (int iRIdx = 1; iRIdx < rightsize; iRIdx++)
+		{
+			char cRet = cLeft*(right[rightsize - iRIdx] - '0') + cStep;
+			cRet += sRet[iDataLen - iRIdx - ioffset] - '0';
+			sRet[iDataLen - iRIdx - ioffset] = (cRet % 10 + '0');
+			cStep = cRet/10;
+		}
+		sRet[iDataLen - rightsize - ioffset] += cStep;
+		ioffset++;
+	}
+	return sRet;
+}
+
+string BigData::Div(string left, string right)
+{
+	string sRet;
+	sRet.append(1, '+');
+	if (left[0] != right[0])
+	{
+		sRet[0] = '-';
+	}
+
+	char* pLeft = (char*)(left.c_str() + 1);
+	char* pRight = (char*)(right.c_str() + 1);
+	int DataLen = right.size() - 1;
+	int Lsize = left.size() - 1;
+
+	for (int iIdx = 0; iIdx < Lsize;)
+	{
+		if (*pLeft == '0')
+		{
+			sRet.append(1, '0');
+			pLeft++;
+			iIdx++;
+			continue;
+		}
+
+		if (!IsLeftStrBig(pLeft, DataLen, pRight, right.size() - 1))
+		{
+			sRet.append(1, '0');
+			DataLen++;
+			if (DataLen + iIdx > Lsize)
+			{
+				break;
+			}
+		}
+		else
+		{
+			sRet.append(1, subloop(pLeft, DataLen, pRight, right.size() - 1));
+
+			while (*pLeft == '0' && DataLen > 0)
+			{
+				pLeft++;
+				iIdx++;
+				DataLen--;
+			}
+
+			DataLen++;
+			if (DataLen + iIdx > Lsize)
+			{
+				break;
+			}
+		}
+	}
+	return sRet;
+}
+
+
+bool BigData::IsLeftStrBig(const char* pLeft, int Lsize, const char* pRight, int Rsize)
+{
+	if (Lsize > Rsize || (Lsize == Rsize && strcmp(pLeft, pRight) >= 0))
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+char BigData::subloop(char* pLeft, int Lsize, char* pRight, int Rsize)
+{
+	assert(pLeft && pRight);
+
+	char cRet = '0';
+
+	while (1)
+	{
+		if (!IsLeftStrBig(pLeft, Lsize, pRight, Rsize))
+		{
+			break;
+		}
+
+		int LDataLen = Lsize - 1;
+		int RDataLen = Rsize - 1;
+
+		while (LDataLen >= 0 && RDataLen >= 0)
+		{
+			char ret = pLeft[LDataLen] - '0';
+			ret -= pRight[RDataLen] - '0';
+
+			if (ret < 0)
+			{
+				pLeft[LDataLen - 1] -= 1;
+				ret += 10;
+			}
+
+			pLeft[LDataLen] = ret + '0';
+			LDataLen--;
+			RDataLen--;
+		}
+
+		while (*pLeft == '0' && Lsize > 0 )
+		{
+			pLeft++;
+			Lsize--;
+		}
+		cRet++;
+	}
+	return cRet;
+}
+
