@@ -1,0 +1,104 @@
+
+
+#pragma once
+#include<iostream>
+using namespace std;
+#include<vector>
+#include<assert.h>
+
+template<class T>
+class Heap
+{
+public:
+	Heap(const T* a, size_t size)
+	{
+		_a.reserve(size);
+		for (size_t i = 0; i < size; i++)
+		{
+			_a.push_back(a[i]);
+		}
+
+		for (int i = (size - 2) / 2; i >= 0; --i)   //第一个非叶子节点
+		{
+			_AdjustDown(i);
+		}
+	}
+
+	void push(const T& x)
+	{
+		_a.push_back(x);
+
+		_AdjustUp(_a.size() - 1);
+	}
+
+	void pop()
+	{
+		size_t size = _a.size();
+		assert(size > 0);
+
+		swap(_a[0], _a[_a.size() - 1]);
+		_a.pop_back();
+		_AdjustDown(0);
+	}
+
+	T& top()
+	{
+		assert(!_a.empty());
+		return _a[0];
+	}
+
+protected:
+	void _AdjustUp(size_t child)
+	{
+		size_t parent = (child - 1) / 2;
+		while (child > 0)
+		{
+			if (_a[child] > _a[parent])
+			{
+				swap(_a[child], _a[parent]);
+				child = parent;
+				parent = (child - 1) / 2;
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+
+	void _AdjustDown(size_t parent)
+	{
+		size_t child = parent * 2 + 1;
+		while (child < _a.size())
+		{
+			if (child + 1 < _a.size() && _a[child] < _a[child + 1])
+			{
+				++child;
+			}
+
+			if (_a[parent] < _a[child])
+			{
+				swap(_a[parent], _a[child]);
+				parent = child;
+				child = parent * 2 + 1;
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+private:
+	vector<T> _a;
+};
+
+
+void TestHeap()
+{
+	int a[10] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+	Heap<int> h(a, sizeof(a) / sizeof(a[0]));
+	//h.push(10);
+	h.pop();
+
+	cout <<h.top()<< endl;
+}
