@@ -1,0 +1,190 @@
+
+#pragma once
+#include<iostream>
+using namespace std;
+
+enum pointerTag
+{
+	THREAD,
+	LINK,
+};
+
+
+template<class T>
+struct BinaryTreeThdNode
+{
+	T _data;
+	BinaryTreeThdNode<T>* _left;
+	BinaryTreeThdNode<T>* _right;
+
+	pointerTag _leftTag;
+	pointerTag _rightTag;
+
+	BinaryTreeThdNode(const T& x)
+		:_data(x)
+		,_left(NULL)
+		,_right(NULL)
+		,_leftTag(LINK)
+		,_rightTag(LINK)
+	{}
+};
+
+template<class T>
+class BinaryTreeThd
+{
+	typedef BinaryTreeThdNode<T> Node;
+public:
+	BinaryTreeThd(const T* a, size_t size, const T& invalid)
+	{
+		size_t index = 0;
+		_root = _CreateTree(a, size, index, invalid);
+	}
+
+	void InOrderThreading()
+	{
+		Node* prev = NULL;
+		_InOrderThreading(_root, prev);
+	}
+
+	void prevOrderThreading()
+	{
+		Node* prev = NULL;
+		_prevOrderThreading(_root, prev);
+	}
+
+	void InOrderThd()
+	{
+		Node* cur = _root;
+		while (cur)
+		{
+			
+			while (cur->_leftTag == LINK)
+			{
+				cur = cur->_left;
+			}
+
+			cout << cur->_data << " ";
+		
+			while (cur->_rightTag == THREAD)
+			{
+				cur = cur->_right;
+				cout << cur->_data << " ";
+			}
+
+			cur = cur->_right;
+		}
+
+		cout << endl;
+	}
+
+
+	void PrevOrderThd()
+	{
+		Node* cur = _root;
+		while (cur)
+		{
+			cout << cur->_data << " ";
+			if (cur->_leftTag == LINK)
+			{
+				cur = cur->_left;
+			}
+			else
+			{
+				cur = cur->_right;
+			}
+		}
+
+		cout << endl;
+	}
+
+protected:
+	Node* _CreateTree(const T* a, size_t size,
+		size_t& index, const T& invalid)
+	{
+		Node* root = NULL;
+		if (index<size && a[index] != invalid)
+		{
+			root = new Node(a[index]);
+			root->_left = _CreateTree(a, size, ++index, invalid);   //++index
+			root->_right = _CreateTree(a, size, ++index, invalid);
+		}
+		return root;
+	}
+
+
+	void _InOrderThreading(Node* cur, Node*& prev)    //Node*&
+	{
+		if (cur == NULL)
+		{
+			return;
+		}
+
+		_InOrderThreading(cur->_left, prev);
+
+		if (cur->_left == NULL)
+		{
+			cur->_leftTag = THREAD;
+			cur->_left = prev;
+		}
+
+		if (prev && prev->_right == NULL)
+		{
+			prev->_rightTag = THREAD;
+			prev->_right = cur;
+		}
+
+		prev = cur;
+		_InOrderThreading(cur->_right, prev);
+
+	}
+
+
+	void _prevOrderThreading(Node* cur, Node*& prev)
+	{
+		if (cur == NULL)
+		{
+			return;
+		}
+
+		if (cur->_left == NULL)
+		{
+			cur->_leftTag = THREAD;
+			cur->_left = prev;
+		}
+
+		if (prev && prev->_right == NULL)
+		{
+			prev->_rightTag = THREAD;
+			prev->_right = cur;
+		}
+
+		prev = cur;
+
+		if (cur->_leftTag == LINK)
+		{
+			_prevOrderThreading(cur->_left, prev);
+		}
+
+		if (cur->_rightTag == LINK)
+		{
+			_prevOrderThreading(cur->_right, prev);
+		}
+
+
+	}
+	
+private:
+	Node* _root;
+};
+
+
+void TestThd()
+{
+	int a1[10] = { 1, 2, 3, '#', '#', 4, '#', '#', 5, 6 };
+	BinaryTreeThd<int> t1(a1, 10, '#');
+	//t1.InOrderThreading();
+	//t1.InOrderThd();
+
+	t1.prevOrderThreading();
+	t1.PrevOrderThd();
+}
