@@ -1,0 +1,824 @@
+
+#pragma once 
+#include<iostream>
+using namespace std;
+
+顺序表（增容的，不增容的）
+template<class T>
+class SeqList
+{
+public:
+	SeqList()        //构造函数
+	:_a(NULL)
+	, _size(0)
+	, _capacity(2)
+	{
+		_a= new T[_capacity];
+	}
+
+	~SeqList()   //析构函数
+	{
+		if (_size)
+		{
+			delete[] _a;
+		}
+	}
+	SeqList(const SeqList<T>& s)  //拷贝构造
+	{
+		_size = s._size;
+		_capacity = s._capacity;
+		_a = new T[_capacity];
+		for (size_t i = 0; i < _size; i++)
+		{
+			_a[i] = s._a[i];
+		}
+	}
+
+	SeqList<T>& operator=(const SeqList<T>& x)  //赋值运算符的重载
+	{
+		if (this != &x)
+		{
+			_size = s._size;
+			_capacity = s._capacity;
+			_a = new T[_capacity];
+			for (size_t i = 0; i < _size; i++)
+			{
+				_a[i] = s._a[i];
+			}
+		}
+		return *this;
+	}
+
+	void Pushback(const T& x)  //尾插
+	{
+		if (_size < _capacity)
+		{
+			_a[_size++] = x;
+		}
+        else if (_size >= _capacity)
+		{
+			_capacity = 2 * _capacity;
+			T* tmp = new T[_capacity];
+			for (size_t i = 0; i < _size; i++)
+			{
+				tmp[i] = _a[i];
+			}
+			delete[] _a;
+
+			_a = tmp;
+
+			_a[_size++] = x;
+		}
+	}
+
+	void  Popback()   //尾删
+	{
+		if (_size > 0)
+		{
+			--_size;
+		}
+		else
+		{
+			cout << "empty seqList!" << endl;
+		}
+	}
+
+	void Dis()  //打印
+	{
+		for (size_t i = 0; i < _size; i++)
+		{
+			cout << _a[i] << " ";
+		}
+		cout << endl;
+	}
+private:
+	T* _a;
+	size_t _size;
+	size_t _capacity;
+};
+
+
+void TestSeqList() //测试
+{
+	SeqList<int> s;
+	s.Pushback(1);
+	s.Pushback(2);
+	s.Pushback(3);
+	s.Pushback(4);
+	s.Pushback(5);
+	s.Pushback(6);
+	s.Dis();
+
+	s.Popback();
+	s.Popback();
+	s.Popback();
+	s.Popback();
+	s.Popback();
+	s.Popback();
+	s.Popback();
+	s.Popback();
+	s.Dis();
+}
+
+单链表
+
+template<class T>
+class LinkList;
+
+template<class T>
+struct LinkListNode
+{
+	//friend class LinkList<T>;
+	LinkListNode(const T& x)
+	:_data(x)
+	, _next(NULL)
+	{}
+
+	~LinkListNode()
+	{
+		if (_next)
+		{
+			delete _next;
+		}
+	}
+
+	T _data;
+	LinkListNode<T>* _next;
+};
+
+template<class T>
+class LinkList
+{
+public:
+	LinkList()
+		:_pHead(NULL)
+	{}
+
+	~LinkList()
+	{
+		if (_pHead)
+		{
+			delete _pHead;
+		}
+	}
+
+	LinkList(const LinkList<T>& L)
+	{
+		LinkListNode<T>* cur = L._pHead;
+
+		while (cur)
+		{
+			if (_pHead == NULL)
+			{
+				_pHead = new LinkListNode<T>(cur->_data);
+			}
+			else
+			{
+				LinkListNode<T>* tmp = new LinkListNode<T>(cur->_data);
+				LinkListNode<T>* cur = _pHead;
+				while (cur->_next)
+				{
+					cur = cur->_next;
+				}
+				cur->_next = tmp;
+				tmp->_next = NULL;
+			}
+			cur = cur->_next;
+		}
+	}
+
+	void Pushback(const T& x)
+	{
+		if (_pHead == NULL)
+		{
+			_pHead =new LinkListNode<T>(x);
+		}
+		else
+		{
+			LinkListNode<T>* tmp = new LinkListNode<T>(x);
+			LinkListNode<T>* cur = _pHead;
+			while (cur->_next)
+			{
+				cur = cur->_next;
+			}
+			cur->_next = tmp;
+			tmp->_next = NULL;
+		}
+	}
+
+	void Popback()
+	{
+		if (_pHead == NULL)
+		{
+			cout << "empty" << endl;
+		}
+		else if (_pHead->_next == NULL)
+		{
+			delete _pHead;
+			_pHead = NULL;
+
+		}
+		else
+		{
+			LinkListNode<T>* cur = _pHead;
+			LinkListNode<T>* tail = NULL;
+			while (cur ->_next)
+			{
+				tail = cur;
+				cur = cur->_next;
+			}
+			delete cur;
+
+			tail->_next = NULL;
+		}
+	}
+
+	void Dis()
+	{
+		LinkListNode<T>* cur = _pHead;
+		while (cur)
+		{
+			cout << cur->_data << "->";
+			cur = cur->_next;
+		}
+		cout << endl;
+	}
+private:
+	LinkListNode<T>* _pHead;
+};
+
+void TestLinkList()
+{
+	LinkList<int> L;
+    L.Pushback(1);
+	L.Pushback(2);
+	L.Pushback(3);
+	L.Pushback(4);
+	L.Pushback(5);
+	L.Dis();
+
+	L.Popback();
+	L.Popback();
+	L.Popback();
+	L.Dis();
+
+	L.Popback();
+	L.Popback();
+	L.Popback();
+	L.Popback();
+
+	L.Popback();
+	L.Popback();
+	L.Dis();
+}
+
+栈
+#include<vector>   //数组模拟实现简单的栈
+
+template<class T>
+class Stack
+{
+public:
+	Stack()
+		:_a(NULL)
+		, _size(0)
+		, _capacity(4)
+	{}
+	~Stack()
+	{
+		if (_a)
+		{
+			delete[] _a;
+		}
+	}
+
+	void push(const T& x)
+	{
+		if (_a == NULL)
+		{
+			_a = new T[_capacity];
+			_a[_size++] = x;
+		}
+		else if (_size >= _capacity)
+		{
+			_capacity = _capacity * 2;
+			T* tmp = new T[_capacity];
+
+			if (tmp != NULL)
+			{
+				for (size_t i = 0; i < _size; ++i)
+				{
+					tmp[i] = _a[i];
+				}
+
+				delete[] _a;
+				_a = tmp;
+				_a[_size++] = x;
+			}
+			
+		}
+		
+	}
+
+	void pop()
+	{
+		if (_size <= 0)
+		{
+			cout<<"empty!";
+		}
+		else if (_size > 0)
+		{
+			--_size;
+		}
+	}
+
+	T& top()
+	{
+		if (_size > 0)
+		{
+			return _a[_size - 1];
+		}
+		else if (_size <= 0)
+		{
+
+			cout << "-------" << endl;
+		}
+		
+	}
+
+	void Dis()
+	{
+		if (_size == 0)
+		{
+			cout << "empty!";
+		}
+		else if (_size > 0)
+		{
+			for (size_t i = 0; i < _size; i++)
+			{
+				cout << _a[i] << " ";
+			}
+		}
+		cout << endl;
+	}
+
+private:
+	T* _a;
+	size_t _size;
+	size_t _capacity;
+};
+
+
+void TestStack()
+{
+	Stack<int> s;
+	s.push(1);
+	s.push(2);
+	s.push(3);
+	s.push(4);
+	s.push(5);
+	s.push(6);
+	s.Dis();
+	cout << s.top() << endl;
+
+	/*s.pop();
+	s.Dis();*/
+
+	s.pop();
+	s.pop();
+	s.pop();
+	s.pop();
+	s.pop();
+	s.pop();
+	cout << s.top() << endl;
+
+	s.Dis();
+
+}
+
+#include<vector>   //顺序表模拟实现简单的栈
+
+template<class T>
+class Stack
+{
+public:
+	Stack()
+		:_a(NULL)
+	{}
+
+
+	void push(const T& x)
+	{
+		_a.push_back(x);
+	}
+
+	void pop()
+	{
+		if (!_a.empty())
+		{
+			_a.pop_back();
+		}
+		else
+		{
+			cout << "empty!" << endl;
+		}
+	}
+
+	void Dis()
+	{
+		for (size_t i = 0; i < _a.size(); i++)
+		{
+			cout << _a[i] << " ";
+		}
+		cout << endl;
+	}
+	
+private:
+	vector<T> _a;
+};
+
+
+
+void TestStack()
+{
+	Stack<int> s;
+	s.push(1);
+	s.push(2);
+	s.push(3);
+	s.push(4);
+	s.push(5);
+	s.Dis();
+
+	s.pop();
+	s.pop();
+	s.pop();
+	s.pop();
+	s.pop();
+	s.pop();
+	s.pop();
+
+	s.pop();
+	s.Dis();
+}
+
+
+
+单链表实现简单的队列
+
+#include<list>
+
+
+template<class T>
+class Queue
+{
+public:
+	Queue()
+	{}
+
+	
+	void push(const T& x)
+	{
+		_pHead.push_back(x);
+	}
+
+	/*Queue(const list<T>& q)
+	{
+		list<T> tmp = q;;
+		list<T> newpHead;
+		while (!tmp.empty())
+		{
+			newpHead.push_back(tmp.front());
+			tmp.pop_front();
+		}
+	}*/
+
+	Queue<T>& operator=(const list<T>& q)
+	{
+
+	}
+
+	void pop()
+	{
+		if (!_pHead.empty())
+		{
+			_pHead.pop_front();
+		}
+		else
+		{
+			cout << "empty!" << endl;
+		}
+	}
+
+	void dis()
+	{
+		list<T> tmp = _pHead;
+		while (!tmp.empty())
+		{
+			cout << tmp.front() << "->";
+			tmp.pop_front();
+		}
+		cout << "NULL"<<endl;
+	}
+private:
+	list<T> _pHead;
+};
+
+
+void TestQueue()
+{
+	Queue<int> q;
+
+	q.push(1);
+	q.push(2);
+	q.push(3);
+	q.push(4);
+	q.push(5);
+	q.dis();
+
+	q.pop();
+	q.pop();
+	q.dis();
+	Queue<int> q1(q);        //为什么会成功？没有调用拷贝构造啊
+	q1.dis();
+
+	q1.pop();
+	q1.pop();
+	q1.pop();
+	q1.pop();
+	q1.pop();
+
+}
+
+
+两个栈实现一个队列
+
+#include<stack>
+
+template<class T>
+class Queue
+{
+public:
+	void push(const T& x)
+	{
+		_sta1.push(x);
+	}
+
+	void pop()
+	{
+		if (_sta1.empty() && _sta2.empty())
+		{
+			cout << " pop empty" << endl;
+			return;
+		}
+
+		if (_sta2.empty())
+		{
+			while (!_sta1.empty())
+			{
+				_sta2.push(_sta1.top());
+				_sta1.pop();
+			}
+			_sta2.pop();
+		}
+		else if (!_sta2.empty())
+		{
+			_sta2.pop();
+		}
+	}
+
+	void Dis()
+	{
+		stack<int> sta1 = _sta1;
+		stack<int> sta2 = _sta2;
+
+		if (sta1.empty() && sta2.empty())
+		{
+			cout << "display empty" << endl;
+			return;
+		}
+		while (!sta1.empty() || !sta2.empty())
+		{
+			if (sta2.empty())
+			{
+				while (!sta1.empty())
+				{
+					sta2.push(sta1.top());
+					sta1.pop();
+				}
+				cout << sta2.top() << "->";
+				sta2.pop();
+			}
+			else if (!sta2.empty())
+			{
+				cout << sta2.top() << "->";
+				sta2.pop();
+			}
+		}
+		cout << "NULL" << endl;
+	}
+
+	bool Empty()
+	{
+		if (_sta1.empty() && _sta2.empty())
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	size_t Size()
+	{
+		stack<int> sta1 = _sta1;
+		stack<int> sta2 = _sta2;
+		size_t size = 0;
+		while (!sta1.empty())
+		{
+			sta1.pop();
+			size++;
+		}
+
+		while (!sta2.empty())
+		{
+			sta2.pop();
+			size++;
+		}
+		return size;
+	}
+
+	T Front()
+	{
+		stack<int> sta1 = _sta1;
+		stack<int> sta2 = _sta2;
+
+		if (sta1.empty() && sta2.empty())
+		{
+			cout << "Front empty" << endl;
+			//return;   //////   -----------------怎么返回
+		}
+
+		while (!sta1.empty() || !sta2.empty())
+		{
+			if (sta2.empty())
+			{
+				while (!sta1.empty())
+				{
+					sta2.push(sta1.top());
+					sta1.pop();
+				}
+				return sta2.top();//-----------为什么带上引用是乱码?不带是正确的
+				//sta2.pop();
+			}
+			else if (!sta2.empty())
+			{
+				return sta2.top();
+
+				//sta2.pop();
+			}
+			
+		}
+		return sta2.top();
+	}
+
+private:
+	stack<T> _sta1;
+	stack<T> _sta2;
+};
+
+
+void TestQueue()
+{
+	Queue<int> q;
+	q.push(1);
+	q.push(2);
+	q.push(3);
+	q.push(4);
+	q.Dis();
+
+	q.pop();
+	q.pop();
+	q.pop();
+	q.Dis();
+
+	q.push(5);
+	q.push(6);
+	q.push(7);
+	q.push(8);
+	q.Dis();
+
+	q.pop();
+	/*q.pop();
+	q.pop();
+	q.pop();
+	q.pop();
+	q.pop();*/
+	cout << q.Empty() << endl;
+	q.Dis();
+	cout << q.Size() << endl;
+	cout << q.Front() << endl;
+}
+
+两个队列实现一个栈
+
+#include<queue>
+
+template<class T>
+class Stack
+{
+public:
+	void push(const T& x)
+	{
+		_qu1.push(x);
+	}
+
+	void pop()
+	{
+		if (_qu1.empty() && _qu2.empty())
+		{
+			cout << "pop empty" << endl;
+			return;
+		}
+
+		for (size_t i = _qu1.size(); i > 1; --i)
+		{
+			_qu2.push(_qu1.front());
+			_qu1.pop();
+		}
+		_qu1.pop();
+
+		if (_qu1.empty())
+		{
+			for (size_t i = _qu2.size(); i > 0; --i)
+			{
+				_qu1.push(_qu2.front());
+				_qu2.pop();
+			}
+		}
+	}
+
+	void Dis()
+	{
+		queue<T> qu1 = _qu1;
+		queue<T> qu2 = _qu2;
+
+		if (qu1.empty() && qu2.empty())
+		{
+			cout << "pop empty" << endl;
+			return;
+		}
+
+		while (!qu1.empty())
+		{
+			for (size_t i = qu1.size(); i > 1; --i)
+			{
+				qu2.push(qu1.front());
+				qu1.pop();
+			}
+			cout << qu1.front() << "->";
+			qu1.pop();
+
+			if (qu1.empty())
+			{
+				for (size_t i = qu2.size(); i > 0; --i)
+				{
+					qu1.push(qu2.front());
+					qu2.pop();
+				}
+			}
+		}
+		cout << endl;
+	}
+
+	size_t Size()
+	{
+		queue<T> qu1 = _qu1;
+		size_t size = 0;
+		while (!qu1.empty())
+		{
+			qu1.pop();
+			++size;
+		}
+		return size;
+	}
+private:
+	queue<T> _qu1;
+	queue<T> _qu2;
+};
+
+
+void TestStack()
+{
+	Stack<int> st;
+	st.push(1);
+	st.push(2);
+	st.push(3);
+	st.push(4);
+	cout << "size"<<st.Size() << endl;
+	st.Dis();
+	st.pop();
+	st.Dis();
+	cout << "size" << st.Size() << endl;
+
+}
