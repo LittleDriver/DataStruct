@@ -1,0 +1,154 @@
+#pragma once
+#include<iostream>
+using namespace std;
+
+enum Status
+{
+	EXIST,
+	EMPTY,
+	DELETE,
+};
+
+template<class K>
+class HashTable
+{
+public:
+	HashTable()
+		:_table(NULL)
+		, _status(NULL)
+		, _size(0)
+		, _capacity(0)
+	{}
+
+	HashTable(const K& size)
+		:_table(new K[size])
+		, _status(new Status[size])
+		, _size(0)
+		, _capacity(size)
+	{
+		for (size_t i = 0; i < _capacity; ++i)
+		{
+			_status[i] = EMPTY;
+		}
+	}
+
+	void Insert(const K& key)
+	{
+		if (_size >= _capacity)
+		{
+			return;
+		}
+
+		size_t index = _hashkey(key);
+		size_t j = 0;
+		while (1)
+		{
+			if (_table[index] == key)
+			{
+				return;
+			}
+
+			if (_status[index] != EXIST)
+			{
+				_table[index] = key;
+				_status[index] = EXIST;
+				++_size;
+				return;
+			}
+
+			index = (index + j) % _capacity;
+			++j;
+		}
+		
+	}
+
+	int Find(const K& key)
+	{
+		size_t index = _hashkey(key);
+		size_t j = 0;
+		while (_status[index] != EMPTY)   //当状态为EMPTY的时候说明后面没有数据
+		{                                  //--------------有BUG,当数据为满的时候----------------
+			if (_status[index] == EXIST && _table[index] == key)
+			{
+				return index;
+			}
+			index = (index + j) % _capacity;
+			++j;
+		}                
+		return -1;
+	}
+
+	void Remove(const K& key)
+	{
+		int index = Find(key);
+
+		if (index != -1)
+		{
+			_status[index] = DELETE;
+			--_size;
+		}
+		return;
+	}
+
+	void Display()
+	{
+		for (size_t i = 0; i < _capacity; ++i)
+		{
+			if (_status[i] == EXIST)
+			{
+				cout << "[" << i << "]" << ":" << _table[i] << endl;
+			}
+			else 
+			{
+				cout << "[" << i << "]" << ":" << "NULL"<< endl;
+			}
+		}
+	}
+protected:
+	size_t _hashkey(const K& key)
+	{
+		return key%_capacity;
+	}
+protected:
+	K* _table;
+	Status* _status;
+	size_t _size;
+	size_t _capacity;
+};
+
+
+void TestHash()
+{
+	HashTable<int> ha1(10);
+	ha1.Insert(5);
+	ha1.Insert(15);
+	ha1.Insert(9);
+	ha1.Insert(19);
+
+	ha1.Display();
+	cout << "19的位置:" << ha1.Find(19) << endl;
+
+	ha1.Remove(15);
+	ha1.Display();
+
+}
+
+
+void TestHash1()
+{
+	HashTable<int> ha1(10);
+	ha1.Insert(0);
+	ha1.Insert(1);
+	ha1.Insert(2);
+	ha1.Insert(3);
+	ha1.Insert(4);
+	ha1.Insert(5);
+	ha1.Insert(6);
+	ha1.Insert(7); 
+	ha1.Insert(8);
+	ha1.Insert(9);
+	ha1.Insert(10);
+	ha1.Display();
+
+	ha1.Remove(10);   //----------------有BUG------------------------------
+}
