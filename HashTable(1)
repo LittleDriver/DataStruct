@@ -152,3 +152,172 @@ void TestHash1()
 
 	ha1.Remove(10);   //----------------有BUG------------------------------
 }
+
+
+
+
+#pragma once
+#include<iostream>
+using namespace std;
+#include<string>
+
+
+enum Status
+{
+	EXIST,
+	DELETE,
+	EMPTY,
+};
+
+
+template<class K,class V>
+struct KeyValue
+{
+	K _key;
+	V _value;
+
+	KeyValue(const K& key = K(), const V& value = V())
+		:_key(key)
+		, _value(value)
+	{}
+};
+
+template<class K>
+struct DefaultHashFuncer
+{
+	size_t operator()(const K& key)
+	{
+		return key;
+	}
+};
+
+
+static size_t BKDRHash(const char * str)
+{
+	unsigned int seed = 131; // 31 131 1313 13131 131313
+	unsigned int hash = 0;
+	while (*str)
+	{
+		hash = hash * seed + (unsigned char)(*str++);
+	}
+	return (hash & 0x7FFFFFFF);
+}
+
+
+template<>
+struct DefaultHashFuncer<string>
+{
+	size_t operator()(const string& str)
+	{
+		/*size_t value = 0;
+		for (size_t i = 0; i < str.size(); ++i)
+		{
+			value += str[i];
+		}
+
+		return value;*/
+		return BKDRHash(str.c_str());
+	}
+};
+
+template<class K,class V,
+class HashFuncer = DefaultHashFuncer<K>>
+class HashTable
+{
+	typedef KeyValue<K, V> KV;
+public:
+	HashTable(size_t size)
+		:_tables(new KV[size])
+		, _status(new Status[size])
+		, _size(0)
+		, _capacity(size)
+	{
+		for (size_t i = 0; i < _capacity; ++i)
+		{
+			_status[i] = EMPTY;
+		}
+	}
+
+	~HashTable()
+	{
+		if (_tables)
+		{
+			delete[] _tables;
+			delete[] _status;
+		}
+		_size = 0;
+		_capacity = 0;
+	}
+
+	bool Insert(const K& key, const V& value)
+	{
+		if (_size == _capacity)   //-----------------
+		{
+			cout << "FULL!" << endl;
+			return false;
+		}
+
+		size_t index = _HashFunc0(key);
+		int i = 0;   //-----------------
+
+		while (_status[index] == EXIST)
+		{
+			if (_tables[index]._key == key)
+			{
+				return false;
+			}
+			index = _HashFunci(index, i++);
+		}
+
+		_status[index] = EXIST;
+		_tables[index] = KV(key, value);
+		++_size;
+
+		return true;
+	}
+	
+
+	size_t _HashFunc0(const K& key)
+	{
+		HashFuncer hf;
+		return hf(key) % _capacity;
+	}
+
+
+	size_t _HashFunci(size_t prevHash, int i)
+	{
+		return (prevHash + 2 * i - 1) % _capacity;
+	}
+
+
+	void Display()
+	{
+		for (size_t i = 0; i < _capacity; ++i)
+		{
+			if (_status[i] == EXIST)
+			{
+				cout << "[" << i << "]" << ":" << _tables[i]._value << endl;
+			}
+			else
+			{
+				cout << "[" << i << "]" << ":" << "NULL" << endl;
+			}
+		}
+	}
+protected:
+	KV* _tables;
+	Status* _status;
+	size_t _size;
+	size_t _capacity;
+};
+
+
+void TestKV()
+{
+	HashTable<string, string> ht1(13);
+	ht1.Insert("peter", "张老师");
+	ht1.Insert("jack", "杰克");
+	ht1.Insert("rose", "玫瑰");
+
+	ht1.Display();
+}
