@@ -1,0 +1,55 @@
+#pragma once
+#include<iostream>
+using namespace std;
+#include<vector>
+
+class BitMap
+{
+public:
+	BitMap(size_t size = 0)
+		:_size(0)
+	{
+		_a.resize((size >> 5) + 1);
+	}
+
+	void Set(size_t x)
+	{
+		size_t index = (x >> 5);
+		size_t num = x % 32;
+
+		if (!(_a[index])&(1 << num))
+		{
+			++_size;
+			_a[index] |= (1 << num);
+		}
+	}
+
+	void ReSet(size_t x)
+	{
+		size_t index = (x >> 5);
+		size_t num = x % 32;
+
+		//_a[index] |= (1 << num);
+		if (_a[index] & (1 << num))
+		{
+			--_size;
+			_a[index] &= (~(1 << num));
+		}
+	}
+
+	bool Test(size_t x)
+	{
+		size_t index = (x >> 5);
+		size_t num = x % 32;
+
+		return _a[index] & (1 << num);
+	}
+
+	size_t size()
+	{
+		return _size;
+	}
+protected:
+	vector<size_t> _a;
+	size_t _size;
+};
