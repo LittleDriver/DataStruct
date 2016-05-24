@@ -128,3 +128,166 @@ void TestHeapSort()
 
 	PrintArray(a, sizeof(a) / sizeof(a[0]));
 }
+
+
+
+//选择排序
+
+void SelectSort(int* a, size_t size)
+{
+	assert(a);
+	for (size_t i = 0; i < size; ++i)
+	{
+		int max = 0;
+		for (size_t j = 0; j < size - i; ++j)
+		{
+			if (a[j]>a[max])
+			{
+				max = j;
+			}
+		}
+		swap(a[size - i -1],a[max]);
+	}
+}
+
+
+void TestSelectSort()
+{
+	int a[] = { 2, 5, 4, 9, 3, 6, 8, 7, 1, 0 };
+
+	SelectSort(a, sizeof(a) / sizeof(a[0]));
+
+	PrintArray(a, sizeof(a) / sizeof(a[0]));
+}
+
+
+//冒泡排序
+
+void BubbleSort(int* a, size_t size)
+{
+	assert(a);
+
+	for (size_t i = 0; i < size; ++i)
+	{
+		for (size_t j = 0; j < size - i-1; ++j)
+		{
+			if (a[j]>a[j + 1])
+			{
+				int tmp = a[j];
+				a[j] = a[j + 1];
+				a[j + 1] = tmp;
+			}
+		}
+	}
+}
+
+void TestBubbleSort()
+{
+	int a[] = { 2, 5, 4, 9, 3, 6, 8, 7, 1, 0 };
+
+	BubbleSort(a, sizeof(a) / sizeof(a[0]));
+
+	PrintArray(a, sizeof(a) / sizeof(a[0]));
+}
+
+
+//快速排序
+
+void QuickSort(int* a, int left, int right)
+{
+	assert(a);
+
+	int begin = left;
+	int end = right - 1;
+	int key = a[right];
+
+	if (left >= right)
+	{
+		return;
+	}
+
+	while (begin < end)
+	{
+		while (begin < end && a[begin] < key)
+		{
+			++begin;
+		}
+
+		while (begin<end && a[end] > key)
+		{
+			--end;
+		}
+
+		if (begin < end)
+		{
+			swap(a[begin], a[end]);
+			++begin;
+			//--end;
+		}
+	}
+
+	if (a[begin] > key)
+	{
+		swap(a[begin], a[right]);
+	}
+
+	QuickSort(a, left, begin - 1);
+	QuickSort(a, begin + 1, right);
+}
+
+void TestQuickSort()
+{
+	//int a[] = { 2, 0, 4, 9, 3, 6, 8, 7, 1, 5 };
+	//int a[] = { 0, 1};
+	int a[] = { 2, 0, 4, 9, 3, 6, 8, 7, 1, 5, 5, 5, 5, 5, 5, };
+	int size = sizeof(a) / sizeof(a[0]);
+
+	QuickSort(a, 0, size - 1);
+
+	PrintArray(a, sizeof(a) / sizeof(a[0]));
+}
+
+
+
+void QuickSort1(int* a, int left, int right)
+{
+	assert(a);
+
+	if (left >= right)
+	{
+		return;
+	}
+	int prev = left - 1;
+	int cur = left;
+	int key = a[right];
+
+	while (cur < right)
+	{
+		while (a[cur] < key && ++prev != cur)
+		{
+			swap(a[cur], a[prev]);
+		}
+		++cur;
+	}
+
+	while (a[prev] < a[right])
+	{ 
+		++prev;
+	}
+
+	swap(a[right], a[prev]);
+	QuickSort1(a, left, prev - 1);
+	QuickSort1(a, prev + 1, right);
+
+}
+
+void TestQuickSort1()
+{
+	int a[] = { 2, 0, 4, 9, 3, 6, 8, 7, 1, 5 };
+
+	int size = sizeof(a) / sizeof(a[0]);
+
+	QuickSort1(a, 0, size - 1);
+
+	PrintArray(a, sizeof(a) / sizeof(a[0]));
+}
