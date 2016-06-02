@@ -1,0 +1,406 @@
+#pragma once 
+#include<iostream>
+using namespace std;
+
+template<class K,class V>
+struct SearchBinTreeNode
+{
+	SearchBinTreeNode<K, V>* _left;
+	SearchBinTreeNode<K, V>* _right;
+
+	K _key;
+	V _value;
+
+	SearchBinTreeNode(const K& key, const V& value)
+		:_left(NULL)
+		, _right(NULL)
+		, _key(key)
+		, _value(value)
+	{}
+
+};
+
+
+template<class K,class V>
+class SearchBinTree
+{
+	typedef SearchBinTreeNode<K, V> Node;
+public:
+	SearchBinTree()
+		:_root(NULL)
+	{}
+
+	~SearchBinTree()
+	{
+		if (_root != NULL)
+		{
+			delete _root;
+		}
+	}
+
+
+	bool Insert(const K& key, const V& value)
+	{
+		if (_root == NULL)
+		{
+			_root = new Node(key, value);
+			return true;
+		}
+
+		Node* cur = _root;
+		Node* parent = NULL;
+
+		while (cur)
+		{
+			if (cur->_key > key)
+			{
+				parent = cur;
+				cur = cur->_left;
+			}
+			else if (cur->_key < key)
+			{
+				parent = cur;
+				cur = cur->_right;
+			}
+			else
+			{
+				return false;
+			}
+		}
+
+		if (parent->_key > key)
+		{
+			parent->_left = new Node(key, value);
+		}
+		else
+		{
+			parent->_right = new Node(key, value);
+		}
+
+		return true;
+	}
+
+
+	Node* Find(const K& key)
+	{
+		if (_root == NULL)
+		{
+			return NULL;
+		}
+
+		Node* cur = _root;
+
+		while (cur)
+		{
+			if (cur->_key > key)
+			{
+				cur = cur->_left;
+			}
+			else if (cur->_key < key)
+			{
+				cur = cur->_right;
+			}
+			else
+			{
+				cout << cur->_key << endl;
+				return cur;
+			}
+		}
+
+		return NULL;
+
+	}
+
+	bool Remove(const K& key)
+	{
+		if (_root == NULL)
+		{
+			return false;
+		}
+
+		if (_root->_left == NULL && _root->_right == NULL)
+		{
+			if (_root->_key == key)
+			{
+				delete _root;
+				_root = NULL;
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+
+		Node* cur = _root;
+		Node* parent = NULL;
+
+		while (cur)
+		{
+			if (cur->_key > key)
+			{
+				parent = cur;
+				cur = cur->_left;
+			}
+			else if (cur->_key < key)
+			{
+				parent = cur;
+				cur = cur->_right;
+			}
+			else                     //cur->_key == key
+			{
+				Node* del = cur;
+				if (cur->_left == NULL)
+				{
+					if (parent == NULL)
+					{
+						_root = cur->_right;
+					}
+					else
+					{
+						if (parent->_left == cur)
+							parent->_left = cur->_right;
+						else
+							parent->_right = cur->_right;
+					}
+				}
+				else if (cur->_right == NULL)
+				{
+					if (parent == NULL)
+					{
+						_root = cur->_left;
+					}
+					else
+					{
+						if (parent->_left == cur)
+							parent->_left = cur->_left;
+						else
+							parent->_right = cur->_left;
+					}
+				}
+				else
+				{
+					//找到最左
+					parent = cur;
+					Node* leftFirst = cur->_right;
+					while (leftFirst->_left)
+					{
+						parent = leftFirst;
+						leftFirst = leftFirst->_left;
+					}
+
+					swap(cur->_key, leftFirst->_key);
+					swap(cur->_value, leftFirst->_value);
+
+					del = leftFirst;
+
+					if (parent->_left == leftFirst)
+						parent->_left = leftFirst->_right;
+					else
+						parent->_right = leftFirst->_right;
+				}
+				delete del;
+				return true;
+			}
+		}
+		return false;
+		
+	}
+
+	void LevelOrder()
+	{
+		_LevelOrder(_root);
+		cout << endl;
+	}
+
+	void Insert_R(const K& key, const V& value)
+	{
+		_Insert_R(_root, key, value);
+	}
+
+	Node* Find_R(const K& key)
+	{
+		return _Find_R(_root,key);
+	}
+
+	void Remove_R(const K& key)
+	{
+		_Remove_R(_root, key);
+	}
+
+	
+protected:
+	void _LevelOrder(Node* root)
+	{
+		if (root == NULL)
+			return;
+
+		_LevelOrder(root->_left);
+		cout << root->_key << " ";
+		_LevelOrder(root->_right);
+	}
+
+
+	bool _Insert_R(Node*& root, const K& key, const V& value)   //递归写法
+	{
+		if (root == NULL)
+		{
+			root = new Node(key, value);
+			return true;
+		}
+
+		if (root->_key == key)
+		{
+			return false;
+		}
+		else if (root->_key > key)
+		{
+			_Insert_R(root->_left, key, value);
+		}
+		else
+		{
+			_Insert_R(root->_right, key, value);
+		}
+	}
+
+	Node* _Find_R(Node*& root,const K& key)
+	{
+		if (root == NULL)
+		{
+			return NULL;
+		}
+
+		if (root->_key > key)
+		{
+			_Find_R(root->_left, key);
+		}
+		else if (root->_key < key)
+		{
+			_Find_R(root->_right, key);
+		}
+		else
+		{
+			cout << root->_key << endl;
+			return root;
+		}
+	}
+
+	bool _Remove_R(Node*& root, const K& key)
+	{
+		if (root == NULL)
+			return false;
+
+		if (root->_key > key)
+		{
+			_Remove_R(root->_left, key);
+		}
+		else if (root->_key < key)
+		{
+			_Remove_R(root->_right, key);
+		}
+		else
+		{
+			//Node* del = root;
+			if (root->_left == NULL)
+			{
+				root = root->_right;
+			}
+			else if (root->_right == NULL)
+			{
+				root = root->_left;
+			}
+			else
+			{
+				Node* leftfirst = root->_right;
+				while (leftfirst->_left)
+				{
+					leftfirst = leftfirst->_left;
+				}
+
+				swap(root->_key, leftfirst->_key);
+				swap(root->_value, leftfirst->_value);
+
+				//del = leftfirst;
+
+				_Remove_R(root->_right, key);
+			}
+			/*if (del != NULL)
+			{
+				delete del;
+			}*/
+			return true;
+		}
+	}
+
+protected:
+	Node* _root;
+};
+
+
+void TestSearchBinTree()
+{
+	SearchBinTree<int, int> S;
+	S.Insert(5,1);
+	S.Insert(3,1);
+	S.Insert(4,1);
+	S.Insert(1,1);
+	S.Insert(7,1);
+	S.Insert(8,1);
+	S.Insert(2,1);
+	S.Insert(6,1);
+	S.Insert(0,1);
+	S.Insert(9,1);
+	S.Find(6);
+	S.LevelOrder();
+
+	S.Remove(0);
+	S.Remove(3);
+	S.Remove(5);
+	S.Remove(7);
+	S.Remove(9);	
+	//S.Remove(1);
+	//S.Remove(2);
+	//S.Remove(4);
+	//S.Remove(6);
+	//S.Remove(8);
+	S.LevelOrder();
+
+}
+
+
+
+void TestSearchBinTree1()
+{
+	SearchBinTree<int, int> S;
+	S.Insert_R(5, 1);
+	S.Insert_R(3, 1);
+	S.Insert_R(4, 1);
+	S.Insert_R(1, 1);
+	S.Insert_R(7, 1);
+	S.Insert_R(8, 1);
+	S.Insert_R(2, 1);
+	S.Insert_R(6, 1);
+	S.Insert_R(0, 1);
+	S.Insert_R(9, 1);
+
+	S.Find(6);
+	S.LevelOrder();
+
+	S.Find_R(6);
+	/*SearchBinTreeNode<int, int>* ret = S.Find_R(6);
+	cout << ret->_key << endl;*/
+
+
+	S.Remove_R(0);
+	S.Remove_R(3);
+	S.Remove_R(5);
+	S.Remove_R(7);
+	S.Remove_R(9);
+	S.Remove_R(1);
+	S.Remove_R(2);
+	S.Remove_R(4);
+	S.Remove_R(6);
+	S.Remove_R(8);
+	S.LevelOrder();
+}
+
