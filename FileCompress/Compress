@@ -1,0 +1,278 @@
+#pragma once
+#define _CRT_SECURE_NO_WARNINGS 1
+#include<iostream>
+using namespace std;
+#include"HuffmanTree.h"
+
+typedef long LongType;
+
+struct CharInfo
+{
+	unsigned char _ch;
+	LongType _count;
+	string _code;
+
+	CharInfo(const LongType count = 0)
+		:_count(count)
+	{}
+
+	CharInfo(const char ch)
+		:_ch(ch)
+	{}
+
+	bool operator!=(const CharInfo& c)const
+	{
+		return _count != c._count;
+	}
+
+	CharInfo operator+(const CharInfo& c)const
+	{
+		return CharInfo(_count + c._count);
+	}
+
+	bool operator<(const CharInfo& c)const
+	{
+		return _count < c._count;
+	}
+};
+
+
+class FileCompress
+{
+public:
+	//文件压缩
+	void Compress(const char* filename)
+	{
+		FILE* fread = fopen(filename, "rb");
+		if (fread == NULL)
+		{
+			cout << "open error!" << endl;
+			return;
+		}
+
+		for (int i = 0; i < 256; ++i)
+		{
+			_info[i]._ch = i;
+		}
+
+		unsigned char ch = fgetc(fread);//使用无符号是为了满足压缩汉字 0-255
+		while (!feof(fread))  //判断文件尾
+		{
+			if (ch == '\r')  
+			{
+				ch = fgetc(fread); //跳过'\r'
+				if (ch != '\n')
+				{
+					fseek(fread, -1, SEEK_CUR);
+				}
+			}
+			_info[ch]._count++;
+			ch = fgetc(fread);
+		}
+
+		HuffmanTree<CharInfo> h(_info, 256, CharInfo());
+		HuffmanNode<CharInfo>* root = h.GetRoot();          //----------------------------
+		string str;
+		GenerateHuffmanCode(root, str);
+
+		fseek(fread, 0, SEEK_SET);
+		ch = fgetc(fread);
+		unsigned char data = 0;
+		int bitcount = 7;
+
+		string write(filename);
+		write = write + ".compress";
+
+		FILE* fwrite = fopen(write.c_str(), "wb");
+		while (!feof(fread))
+		{
+			if (ch == '\r')
+			{
+				ch = fgetc(fread);
+				if (ch != '\n')
+				{
+					fseek(fread, -1, SEEK_CUR);
+				}
+			}
+
+			const char* cur = _info[ch]._code.c_str();
+
+			while (*cur)
+			{
+				if (bitcount >= 0)
+				{
+					data = data | ((*cur - '0') << bitcount);
+					bitcount--;
+				}
+
+				if (bitcount < 0)
+				{
+					fputc(data, fwrite);
+					bitcount = 7;
+					data = 0;
+				}
+				cur++;
+			}
+			ch = fgetc(fread);
+		}
+
+
+		fputc(data, fwrite);
+		WriteConfig(filename);
+
+		fclose(fread);
+		fclose(fwrite);
+	}
+
+
+	//文件解压缩
+	void UnCompress(const char* filename)
+	{
+		CharInfo HNarry[256];
+		ReadConfig(filename, HNarry);
+		HuffmanTree<CharInfo> h(HNarry, 256, CharInfo());
+		HuffmanNode<CharInfo>* root = h.GetRoot();
+		HuffmanNode<CharInfo>* cur = root;
+
+		string comf(filename);
+		comf = comf + ".compress";
+		FILE* fread = fopen(comf.c_str(), "rb");
+		if (fread == NULL)
+		{
+			cout << "fuck" << endl;
+			return;
+		}
+
+		unsigned char ch = fgetc(fread);
+		FILE* fwrite = fopen("output", "wb");
+		int readcount = root->_wight._count;
+		while (readcount)
+		{
+			int tmp = 1;
+			int bit = 7;   
+
+			while (bit >= 0)
+			{
+				if (ch & (tmp << bit))
+				{
+					cur = cur->_right;
+					bit--;
+				}
+				else
+				{
+					cur = cur->_left;
+					bit--;
+				}
+				
+				if (cur->_left == NULL&&cur->_right == NULL)
+				{
+					fputc(cur->_wight._ch, fwrite);
+					cur = root;
+					readcount--;
+					
+					if (!readcount)
+					{
+						break;
+					}
+				}
+
+			}
+			ch = fgetc(fread);
+		}
+		fclose(fread);
+		fclose(fwrite);
+	}
+
+protected:
+	void GenerateHuffmanCode(HuffmanNode<CharInfo>* root, string& code)
+	{
+		if (root == NULL)
+			return;
+		GenerateHuffmanCode(root->_left, code + '0');
+		GenerateHuffmanCode(root->_right, code + '1');
+		root->_wight._code = code;
+		if (root->_left == NULL && root->_right == NULL)
+		{
+			_info[root->_wight._ch]._code = code;
+		}
+
+	}
+	void WriteConfig(const char* filename)
+	{
+		string conf(filename);
+		conf = conf + "config";
+		FILE* fcon = fopen(conf.c_str(), "wb");
+		for (int i = 0; i < 256; ++i)
+		{
+			if (_info[i]._count)
+			{
+				fputc(_info[i]._ch, fcon);
+				fputc(',', fcon);
+
+				char count[100];
+				_itoa(_info[i]._count, count, 10);
+				fputs(count, fcon);
+				fputc(',', fcon);
+				fputs(_info[i]._code.c_str(), fcon);
+				fputc('\n', fcon);
+			}
+		}
+
+		fclose(fcon);
+	}
+	void ReadConfig(const char* filename, CharInfo* HNarry)
+	{
+		string conf(filename);
+		conf = conf + "config";
+		FILE* fread = fopen(conf.c_str(), "rb");
+		if (fread == NULL)
+		{
+			cout << "打开待压缩文件失败" << endl;
+			return;
+		}
+
+		char str[100];
+		while (fgets(str, 100, fread))//得到配置文件的一行
+		{
+			char* ptr = str;
+			unsigned char index = (unsigned char)*ptr;
+
+			if (index == '\n')
+			{
+				HNarry[index]._ch = index;
+				fgets(str, 100, fread);
+				char* ptr = str;
+				ptr++;
+				LongType count = 0;//字符出现的次数
+				while (*ptr != ',' && *ptr)//字符转换成数据
+				{
+					count *= 10;
+					count += (*ptr - '0');
+					ptr++;
+				}
+				HNarry[index]._count = count;
+				ptr++;
+				string code(ptr);
+				HNarry[index]._code = code;
+			}
+			else
+			{
+				HNarry[index]._ch = index;
+				ptr += 2;
+				LongType count = 0;
+				while (*ptr != ',' && *ptr)
+				{
+					count *= 10;
+					count += (*ptr - '0');
+					ptr++;
+				}
+				HNarry[index]._count = count;
+				ptr++;
+				string code(ptr);
+				HNarry[index]._code = code;
+			}
+		}
+	}
+protected:
+	CharInfo _info[256];
+};
