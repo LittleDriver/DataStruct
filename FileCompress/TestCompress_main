@@ -1,0 +1,29 @@
+#define _CRT_SECURE_NO_WARNINGS 1
+#include<iostream>
+using namespace std;
+#include"Compress.h"
+#include<ctime>
+
+int main()
+{
+
+	FileCompress f;
+	clock_t start1, start2, finish1, finish2;
+	start1 = clock();
+	f.Compress("input");
+	//f.Compress("input.BIG");
+	finish1 = clock();
+	//cout << "压缩：" << finish1 - start1 << "/" << CLOCKS_PER_SEC << " s " << endl;
+	cout << "压缩：" << (finish1 - start1) / (CLOCKS_PER_SEC) << " s " << endl;
+
+
+	start2 = clock();
+	f.UnCompress("input");
+	//f.UnCompress("input.BIG");
+	finish2 = clock();
+	//cout << "解压缩：" << finish2 - start2 << "/" << CLOCKS_PER_SEC << " s " << endl;
+	cout << "解压缩：" << (finish2 - start2) / (CLOCKS_PER_SEC) << " s " << endl;
+
+	system("pause");
+	return 0;
+}
