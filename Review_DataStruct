@@ -1,0 +1,1818 @@
+#pragma once
+#include<iostream>
+using namespace std;
+
+//顺序表，链表
+//*************************************************************************************************************************************************//
+
+template<class T>
+class SeqList
+{
+public:
+	SeqList()
+		:_capacity(1)
+		, _size(0)
+	{
+		_a = new T[_capacity];
+	}
+
+	~SeqList()
+	{
+		if (_a)
+		{
+			delete[] _a;
+		}
+		_capacity = 0;
+		_size = 0;
+	}
+
+	bool PushBack(const T& x);
+	void _Checkcapacity();
+	int Find(const T& x);
+	bool PopBcak();
+	void Printf();
+protected:
+	T* _a;
+	size_t _capacity;
+	size_t _size;
+};
+
+
+
+template<class T>
+bool SeqList<T>::PushBack(const T& x)
+{
+	_Checkcapacity();
+	_a[_size] = x;
+	_size++;
+
+	return true;
+}
+
+template<class T>
+void SeqList<T>::_Checkcapacity()
+{
+	if (_size == _capacity)
+	{
+		_capacity = 2 * _capacity + 3;
+		T* tmp = new T[_capacity];
+		for (size_t i = 0; i < _capacity; ++i)   //这里不能使用memmove，因为memmove不能拷贝自定义类型以及string等等
+		{
+			tmp[i] = _a[i];
+		}
+		delete[] _a;
+		_a = tmp;
+	}
+
+}
+
+template<class T>
+void SeqList<T>::Printf()
+{
+	for (size_t i = 0; i < _size; ++i)
+	{
+		cout << _a[i] << " ";
+	}
+	cout << endl;
+	cout << "有效数据：" << _size << endl;
+	cout << "容量：" << _capacity << endl;
+	cout << endl;
+
+}
+
+
+template<class T>
+int  SeqList<T>::Find(const T& x)
+{
+	if (_size <= 0)
+	{
+		cout << "Find() -> error! 有效数据为空!" << endl;
+		return -1;
+	}
+
+	for (size_t i = 0; i < _size; i++)
+	{
+		if (_a[i] == x)
+		{
+			cout << "Find it!" << endl;
+			return i;
+		}
+	}
+
+	cout << "没有这个数据！" << endl;
+	return -1;
+}
+
+template<class T>
+bool  SeqList<T>::PopBcak()
+{
+	if (_size <= 0)
+	{
+		cout << "PopBack() -> error!  有效数据为空!" << endl;
+		return false;
+	}
+	else
+	{
+		--_size;
+		return true;
+	}
+}
+
+//******************************************************************************************************************************************************//
+
+template<class T>
+struct ListNode
+{
+	ListNode<T>* _next;
+	ListNode<T>* _prev;
+	T _data;
+
+	ListNode(const T& x)
+		:_next(NULL)
+		, _prev(NULL)
+		,_data(x)
+	{}
+};
+
+template<class T>
+class List
+{
+	typedef ListNode<T> Node;
+public:
+	List()
+		:_pHead(NULL)
+	{}
+
+	~List()
+	{
+		if (_pHead)
+		{
+			delete _pHead;
+		}
+	}
+
+	bool PushBack(const T& x);
+	bool PopBack();
+	ListNode<T>* Find(const T& x);
+	bool PushFront(const T& x);
+	bool PopFront();
+	bool Insert(Node* pos, const T& x);
+	void PrintfList();
+	void PrintfList_reverse();
+	int Size();
+protected:
+	Node* _pHead;
+};
+
+
+template<class T>
+int List<T>::Size()
+{
+	Node* cur = _pHead;
+	int count = 0;
+
+	if (_pHead != NULL)
+	{
+		while (cur)
+		{
+			cur = cur->_next;
+			++count;
+		}
+	}
+
+	return count;
+}
+
+
+template<class T>
+bool List<T>::PushBack(const T& x)
+{
+	if (_pHead == NULL)
+	{
+		Node* tmp = new Node(x);
+		_pHead = tmp;
+		tmp->_prev = _pHead;
+
+		return true;
+	}
+
+	Node* cur = _pHead;
+	while (cur->_next)
+	{
+		cur = cur->_next;
+	}
+
+	Node* tmp = new Node(x);
+	cur->_next = tmp;
+	tmp->_prev = cur;
+
+	return true;
+}
+
+
+//1.没有节点的情况 2.一个节点的情况 3.多个节点的情况
+template<class T>
+bool List<T>::PopBack()
+{
+	if (Size() <= 0)
+	{
+		cout << "PopBack() -> false! 没有数据可以pop" << endl;
+		return false;
+	}
+
+	if (Size() == 1)
+	{
+		Node* cur = _pHead;
+		delete cur;
+		_pHead = NULL;
+		return true;
+	}
+
+	Node* cur = _pHead;
+	while (cur->_next)
+	{
+		cur = cur->_next;
+	}
+
+	Node* prev = cur->_prev;
+	prev->_next = NULL;
+	delete cur;
+}
+
+template<class T>
+ListNode<T>* List<T>::Find(const T& x)
+{
+	if (_pHead == NULL)
+	{
+		cout << "Find() -> false! 没有数据可以Find" << endl;
+		return NULL;
+	}
+
+	Node* cur = _pHead;
+	while (cur)
+	{
+		if (cur->_data == x)
+		{
+			cout << "Find it -> "<<cur->_data << endl;
+			return cur;
+		}
+		cur = cur->_next;
+	}
+
+	return NULL;
+}
+
+template<class T>
+bool List<T>::PushFront(const T& x)
+{
+	if (_pHead == NULL)
+	{
+		Node* tmp = new Node(x);
+		_pHead = tmp;
+		tmp->_prev = _pHead;
+
+		return true;
+	}
+
+	Node* tmp = new Node(x);
+	Node* cur = _pHead;
+	tmp->_next = cur;
+	cur->_prev = tmp;
+	_pHead = tmp;
+	tmp->_prev = _pHead;
+}
+
+template<class T>
+bool List<T>::PopFront()
+{
+	if (_pHead == NULL)
+	{
+		cout << "PopFrant() -> false! 没有数据可以pop" << endl;
+		return false;
+	}
+
+	if (Size() == 1)
+	{
+		Node* cur = _pHead;
+		delete cur;
+		_pHead = NULL;
+		return true;
+	}
+
+	Node* del = _pHead;
+
+	_pHead = del->_next;
+	del->_next->_prev = _pHead;
+	delete del;
+}
+
+template<class T>
+bool List<T>::Insert(Node* pos,const T& x)
+{
+	Node* prev = pos->_prev;
+	Node* tmp = new Node(x);
+
+	prev->_next = tmp;
+	tmp->_prev = prev;
+
+	pos->_prev = tmp;
+	tmp->_next = pos;
+	return true;
+}
+
+
+template<class T>
+void List<T>::PrintfList()
+{
+	Node* cur = _pHead;
+
+	while (cur)
+	{
+		cout << cur->_data << " ";
+		cur = cur->_next;
+	}
+ 	cout << endl;
+}
+
+template<class T>
+void List<T>::PrintfList_reverse()
+{
+	Node* cur = _pHead;
+
+	while (cur->_next)
+	{
+		cur = cur->_next;
+	}
+
+	while (cur)
+	{
+		if (cur == _pHead)
+		{
+			cout << cur->_data << " ";
+			break;
+		}
+		cout << cur->_data << " ";
+		cur = cur->_prev;	
+	}
+	cout << endl;
+}
+
+
+
+//stack queue---------------------------------------------------------------------------------------------------------------------------
+
+template<class T>
+class Stack
+{
+public:
+	Stack()
+		:_capacity(1)
+		, _size(0)
+	{
+		_a = new T[_capacity];
+	}
+
+
+	~Stack()
+	{
+		if (_a)
+		{
+			delete _a;
+		}
+		_capacity = 0;
+		_size = 0;
+	}
+
+	bool Push(const T& x);
+	void _CheckcapacityStack();
+	bool Pop();
+	T Find(const T& x);
+	T Size();
+	T Top();
+	void PrintfStack();
+protected:
+	T* _a;
+	size_t _capacity;
+	size_t _size;
+};
+
+
+template<class T>
+void Stack<T>::PrintfStack()
+{
+	for (size_t i = 0; i < _size; i++)
+	{
+		cout << _a[i] << " ";
+	}
+	cout << endl;
+}
+
+
+template<class T>
+void Stack<T>::_CheckcapacityStack()
+{
+	if (_size == _capacity)
+	{
+		_capacity = 2 * _capacity + 3;
+		T* tmp = new T[_capacity];
+		for (size_t i = 0; i < _capacity; ++i)   //这里不能使用memmove，因为memmove不能拷贝自定义类型以及string等等
+		{
+			tmp[i] = _a[i];
+		}
+		delete[] _a;
+		_a = tmp;
+	}
+}
+
+template<class T>
+bool Stack<T>::Push(const T& x)
+{
+	_CheckcapacityStack();
+
+	_a[_size] = x;
+	++_size;
+
+	return true;
+}
+
+template<class T>
+bool Stack<T>::Pop()
+{
+	if (_size <= 0)
+	{
+		cout << "Pop() -> false! 没有数据可以pop" << endl;
+		return false;
+	}
+
+	--_size;
+	return true;
+}
+
+template<class T>
+T Stack<T>::Find(const T& x)
+{
+	for (size_t i = 0; i < _size; ++i)
+	{
+		if (_a[i] == x)
+		{
+			cout << "Find it! :" <<i<< endl;
+			return i;
+		}
+	}
+	cout << "没有找到数据" << endl;
+	return -1;
+}
+
+template<class T>
+T Stack<T>::Size()
+{
+	return _size;
+}
+
+template<class T>
+T Stack<T>::Top()
+{
+	return _a[_size - 1];
+}
+
+
+//*****************************************************************************************************************************************************//
+#include<vector>
+template<class T>
+class Stack_vector
+{
+public:
+	bool Push(const T& x);
+	bool Pop();
+	T Size();
+	T Top();
+	void PrintfStack();
+protected:
+	vector<T> _a;
+};
+
+template<class T>
+bool Stack_vector<T>::Push(const T& x)
+{
+	_a.push_back(x);
+	return true;
+}
+
+template<class T>
+bool Stack_vector<T>::Pop()
+{
+	if (_a.size() > 0)
+	{
+		_a.pop_back();
+		return true;
+	}
+	cout << "没有数据！" << endl;
+	return false;
+}
+
+template<class T>
+T Stack_vector<T>::Size()
+{
+	return _a.size();
+}
+
+template<class T>
+T Stack_vector<T>::Top()
+{
+	return _a.back();
+}
+
+template<class T>
+void Stack_vector<T>::PrintfStack()
+{
+	for (size_t i = 0; i < _a.size(); i++)
+	{
+		cout << _a[i] << " ";
+	}
+	cout << endl;
+}
+
+
+//*********************************************************************************************************************************************
+#include<list>
+#include<queue>
+template<class T>
+class Queue
+{
+public:
+	bool Push(const T& x);
+	bool Pop();
+	bool Size();
+	bool Empty();
+	T Front();
+	T Back();
+protected:
+	list<T> _l;
+};
+
+template<class T>
+bool Queue<T>::Push(const T& x)
+{
+	_l.push_back(x);
+	return true;
+}
+
+template<class T>
+bool Queue<T>::Pop()
+{
+	if (_l.size() > 0)
+	{
+		_l.pop_front();
+		return true;
+	}
+	cout << "没有数据" << endl;
+	return false;
+}
+
+template<class T>
+bool Queue<T>::Size()
+{
+	return _l.size();
+}
+
+template<class T>
+bool Queue<T>::Empty()
+{
+	return _l.empty();
+}
+
+template<class T>
+T Queue<T>::Front()
+{
+	return _l.front();
+}
+
+template<class T>
+T Queue<T>::Back()
+{
+	return _l.back();
+}
+
+void test()
+{
+	queue<int> q;
+	q.push(1);
+	q.push(2);
+	q.push(3);
+	q.push(4);
+	q.push(5);
+
+	list<int> l;
+	l.push_back(1);
+	cout << l.back() << endl;
+	cout << q.back() << endl;
+	
+}
+
+
+//**************************************************************************************************************************************************
+//二叉树，堆，搜索二叉树，AVLTree,RBTree
+
+
+//堆，底层封装的是一个vector，堆被看做是一个特殊的完全二叉树，因为，若是大堆则父节点比孩子节点大，若是小堆则父亲结点比孩子节点小
+
+/*****************************************************建堆，插入数据，删除数据，堆排序********************************************************************/
+
+#include<assert.h>
+
+//template<class T>
+//class Heap   //没有加入比较器的Heap的实现
+//{
+//public:
+//	Heap()
+//	{}
+//
+//	Heap(const T* a, size_t size);
+//	void Push(const T& x);
+//	void Pop();
+//	T& Top();
+//	bool Empty();
+//protected:
+//	void _AdjustDown(size_t parent)
+//	{
+//		size_t child = parent * 2 + 1;
+//
+//		while (child < _v.size())
+//		{
+//			if (child + 1 < _v.size() && _v[child] < _v[child + 1])
+//			{
+//				//child = child + 1;
+//				++child;
+//			}
+//
+//			if (_v[parent] < _v[child])
+//			{
+//				swap(_v[parent], _v[child]);
+//				parent = child;
+//				child = parent * 2 + 1;
+//			}
+//			else
+//			{
+//				break;
+//			}
+//		}	
+//	}
+//
+//	void _AdjustUp(size_t child)
+//	{
+//		size_t parent = (child - 1) / 2;
+//		while (child > 0)
+//		{
+//			if (_v[child] > _v[parent])
+//			{
+//				swap(_v[child], _v[parent]);
+//				child = parent;
+//				parent = (child - 1) / 2;
+//			}
+//			else
+//			{
+//				break;
+//			}
+//		}
+//	}
+//protected:
+//	vector<T> _v;
+//};
+//
+//template<class T>
+//Heap<T>::Heap(const T* a, size_t size)
+//{
+//	assert(a);
+//	for (size_t i = 0; i < size; ++i)  //插入数据
+//	{
+//		_v.push_back(a[i]);
+//	}
+//	
+//
+//	for (int i = (size - 2) / 2; i>=0; --i) //调整堆，调堆必须从下向上调整，从第一个非叶子节点调起a[(size-2)/2] 建大堆
+//	{
+//		_AdjustDown(i);
+//	}
+//}
+//
+//template<class T>
+//void Heap<T>::Push(const T& x)
+//{
+//	_v.push_back(x);
+//	_AdjustUp(_v.size() - 1);
+//}
+//
+//template<class T>
+//void Heap<T>::Pop()
+//{
+//	assert(!Empty());
+//	swap(_v[0], _v[_v.size() - 1]);
+//
+//	_v.pop_back();
+//	_AdjustDown(0);
+//}
+//
+//template<class T>
+//T& Heap<T>::Top()
+//{
+//	assert(!Empty());
+//	return _v[0];
+//}
+//
+//template<class T>
+//bool Heap<T>::Empty()
+//{
+//	return _v.empty();
+//}
+
+
+//template<class T>          
+//void Heap<T>::_AdjustDown(size_t parent)
+//{
+//	size_t child = parent * 2 + 1;
+//
+//	while (child < _v.size())
+//	{
+//		if (child + 1 < _v.size() && a[child] < a[child + 1])
+//		{
+//			//child = child + 1;
+//			++child;
+//		}
+//
+//		if (a[parent] < a[child])
+//		{
+//			swap(a[parent], a[child]);
+//			parent = child;
+//			child = parent * 2 + 1;
+//		}
+//		else
+//		{
+//			break;
+//		}
+//	}
+//}
+//
+//
+//template<class T>
+//void Heap<T>::_AdjustUp(size_t child)
+//{
+//	size_t parent = (child - 1) / 2;
+//	while (child > 0)
+//	{
+//		if (a[child] > a[parent])
+//		{
+//			swap(a[child], a[parent]);
+//			child = parent;
+//			parent = (child - 1) / 2;
+//		}
+//		else
+//		{
+//			break;
+//		}
+//	}
+//}
+
+template<class T>//
+struct Less
+{
+	bool operator()(const T& l, const T& r)
+	{
+		return l < r;
+	}
+};
+
+template<class T>
+struct Greater
+{
+	bool operator()(const T& l, const T& r)
+	{
+		return l > r;
+	}
+};
+
+
+template<class T,class Compare = Less<T>>//加入比较器的Heap
+class Heap   
+{
+public:
+	Heap()
+	{}
+
+	Heap(vector<T> a)
+	{
+		_v.swap(a);
+
+		for (int i = (size - 2) / 2; i >= 0; --i)
+		{
+			_AdjustDown(i);
+		}
+	}
+
+	Heap(const T* a, size_t size);
+	void Push(const T& x);
+	void Pop();
+	T& Top();
+	bool Empty();
+protected:
+	void _AdjustDown(size_t parent)
+	{
+		size_t child = parent * 2 + 1;
+		Compare com;
+
+		while (child < _v.size())
+		{
+			//if (child + 1 < _v.size() && _v[child] < _v[child + 1])
+			if (child + 1 < _v.size() && com(_v[child], _v[child + 1]))
+			{
+				//child = child + 1;
+				++child;
+			}
+
+			if (com(_v[parent], _v[child]))
+			{
+				swap(_v[parent], _v[child]);
+				parent = child;
+				child = parent * 2 + 1;
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+
+	void _AdjustUp(size_t child)
+	{
+		size_t parent = (child - 1) / 2;
+		Compare com;
+		while (child > 0)
+		{
+			if (com(_v[child], _v[parent]))
+			{
+				swap(_v[child], _v[parent]);
+				child = parent;
+				parent = (child - 1) / 2;
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+protected:
+	vector<T> _v;
+};
+
+template<class T, class Compare = Less<T>>
+Heap<T, Compare>::Heap(const T* a, size_t size)
+{
+	assert(a);
+	for (size_t i = 0; i < size; ++i)  //插入数据
+	{
+		_v.push_back(a[i]);
+	}
+
+
+	for (int i = (size - 2) / 2; i >= 0; --i) //调整堆，调堆必须从下向上调整，从第一个非叶子节点调起a[(size-2)/2] 建大堆
+	{
+		_AdjustDown(i);
+	}
+}
+
+template<class T, class Compare = Less<T>>
+void Heap<T, Compare>::Push(const T& x)
+{
+	_v.push_back(x);
+	_AdjustUp(_v.size() - 1);
+}
+
+template<class T, class Compare = Less<T>>
+void Heap<T, Compare>::Pop()
+{
+	assert(!Empty());
+	swap(_v[0], _v[_v.size() - 1]);
+
+	_v.pop_back();
+	_AdjustDown(0);
+	cout << "Pop success!" << endl;
+}
+
+template<class T, class Compare = Less<T>>
+T& Heap<T, Compare>::Top()
+{
+	assert(!Empty());
+	return _v[0];
+}
+
+template<class T, class Compare = Less<T>>
+bool Heap<T,Compare>::Empty()
+{
+	return _v.empty();
+}
+
+
+
+//*******************************************二叉搜索树**************************************************************//
+//****************************1.根节点比左子树大，比右子树小**********************************************************//
+//****************************2.每一个节点的key值不同       **********************************************************//
+//****************************3.左右子树都是二叉搜索树      **********************************************************//
+
+
+//K类型的二叉搜索树
+template<class T>
+struct BinsearchTreeNode
+{
+	BinsearchTreeNode<T>* _left;
+	BinsearchTreeNode<T>* _right;
+	T _data;
+
+	BinsearchTreeNode(const T& x)
+		:_left(NULL)
+		,_right(NULL)
+		, _data(x)
+	{}
+};
+
+
+template<class T>
+class BinsearchTree
+{
+	typedef BinsearchTreeNode<T> Node;
+public:
+	BinsearchTree()
+		:_root(NULL)
+	{}
+
+	bool Insert(const T& key);
+	BinsearchTreeNode<T>* Find(const T& key);
+	bool Remove(const T& key);
+	void Inorder()
+	{
+		_Inorder(_root);
+		cout << endl;
+	}
+protected:
+	void _Inorder(Node* root)
+	{
+		if (root == NULL)
+		{
+			return;
+		}
+
+		_Inorder(root->_left);
+		cout << root->_data << " ";
+		_Inorder(root->_right);
+	}
+protected:
+	Node* _root;
+};
+
+
+template<class T>
+bool BinsearchTree<T>::Insert(const T& key)
+{
+	if (_root == NULL)
+	{
+		_root = new Node(key);
+		return true;
+	}
+
+	Node* parent = NULL;
+	Node* cur = _root;
+	while (cur)
+	{
+		if (cur->_data > key)
+		{
+			parent = cur;
+			cur = cur->_left;
+		}
+		else if (cur->_data < key)
+		{
+			parent = cur;
+			cur = cur->_right;
+		}
+		else
+		{
+			cout << "已经存在的key值！" << endl;
+			return false;
+		}
+	}
+
+	Node* tmp = new Node(key);
+	if (parent->_data > key)
+	{
+		parent->_left = tmp;
+	}
+	else
+	{
+		parent->_right = tmp;
+	}
+
+	return true;
+}
+
+
+template<class T>
+BinsearchTreeNode<T>* BinsearchTree<T>::Find(const T& key)
+{
+	if (_root == NULL)
+	{
+		return NULL;
+	}
+
+	Node* cur = _root;
+	while (cur)
+	{
+		if (cur->_data > key)
+		{
+			cur = cur->_left;
+		}
+		else if (cur->_data < key)
+		{
+			cur = cur->_right;
+		}
+		else
+		{
+			cout << "find it" << endl;
+			return cur;
+		}
+	}
+
+	cout << "Not find it" << endl;
+	return false;
+}
+
+
+template<class T>
+bool  BinsearchTree<T>::Remove(const T& key)
+{
+	if (_root == NULL)
+	{
+		cout << "没有数据可以删除" << endl;
+		return NULL;
+	}
+
+	Node* cur = _root;
+	Node* parent = NULL;
+
+	while (cur)
+	{
+		if (cur->_data > key)
+		{
+			parent = cur;
+			cur = cur->_left;
+		}
+		else if (cur->_data < key)
+		{
+			parent = cur;
+			cur = cur->_right;
+		}
+		else  //找到要删除的对象
+		{
+			Node* del = cur;
+			if (cur->_left == NULL) //左孩子不存在
+			{
+				if (parent == NULL)
+				{
+					_root = cur->_right;
+				}
+				else
+				{
+					if (parent->_left == cur)
+					{
+						parent->_left = cur->_right;
+					}
+					else
+					{
+						parent->_right = cur->_right;
+					}
+				}
+			}
+			else if (cur->_right == NULL) //右孩子不存在
+			{
+				if (parent == NULL) //当前要删除的节点就是根节点
+				{
+					_root = cur->_left;
+				}
+				else //不是根节点的情况
+				{
+					if (parent->_left == cur) //主要看cur的左孩子连在cur父亲节点的左还是右；
+					{
+						parent->_left = cur->_left;
+					}
+					else
+					{
+						parent->_right = cur->_left;
+					}
+				}
+			}
+			else  //左右孩子都存在
+			{
+				parent = cur;
+				Node* firstleft = cur->_right;
+				while (firstleft->_left)
+				{
+					parent = firstleft;
+					firstleft = firstleft->_left;
+				}
+
+				swap(cur->_data, firstleft->_data);
+				del = firstleft;
+
+				if (parent->_left == firstleft)
+				{
+					parent->_left = firstleft->_right;
+				}
+				else
+				{
+					parent->_right = firstleft->_right;
+				}
+			}
+
+			delete del;
+			return true;
+		}
+	}
+
+	cout << "二叉搜索树中没有和key值相等的节点" << endl;
+	return false;
+}
+
+//**********************************************   KV   **************************************************************************//
+//**********************************************   KV   **************************************************************************//
+//**********************************************   KV   **************************************************************************//
+
+
+//K，V类型的二叉搜索树
+template<class K,class V>
+struct BinsearchTreeNodeKV
+{
+	BinsearchTreeNodeKV<K,V>* _left;
+	BinsearchTreeNodeKV<K,V>* _right;
+	K _data;
+	V _value;
+
+	BinsearchTreeNodeKV(const K& x,const V& value)
+		:_left(NULL)
+		,_right(NULL)
+		,_data(x)
+		,_value(value)
+	{}
+};
+
+
+template<class K,class V>
+class BinsearchTreeKV
+{
+	typedef BinsearchTreeNodeKV<K,V> Node;
+public:
+	BinsearchTreeKV()
+		:_root(NULL)
+	{}
+
+	bool Insert(const T& key,const V& value);
+	BinsearchTreeNodeKV<T>* Find(const T& key);
+	bool Remove(const T& key);
+	void Inorder()
+	{
+		_Inorder(_root);
+		cout << endl;
+	}
+protected:
+	void _Inorder(Node* root)
+	{
+		if (root == NULL)
+		{
+			return;
+		}
+
+		_Inorder(root->_left);
+		cout << root->_data << " ";
+		_Inorder(root->_right);
+	}
+protected:
+	Node* _root;
+};
+
+
+//template<class K,class V>
+//bool BinsearchTreeKV<K, V>::Insert(const T& key, const V& value)
+//{
+//	if (_root == NULL)
+//	{
+//		_root = new Node(key,value);
+//		return true;
+//	}
+//
+//	Node* parent = NULL;
+//	Node* cur = _root;
+//	while (cur)
+//	{
+//		if (cur->_data > key)
+//		{
+//			parent = cur;
+//			cur = cur->_left;
+//		}
+//		else if (cur->_data < key)
+//		{
+//			parent = cur;
+//			cur = cur->_right;
+//		}
+//		else
+//		{
+//			cout << "已经存在的key值！" << endl;
+//			return false;
+//		}
+//	}
+//
+//	Node* tmp = new Node(key,value);
+//	if (parent->_data > key)
+//	{
+//		parent->_left = tmp;
+//	}
+//	else
+//	{
+//		parent->_right = tmp;
+//	}
+//
+//	return true;
+//}
+//
+//
+//
+//template<class K, class V>
+//BinsearchTreeNodeKV<T>* BinsearchTreeKV<K, V>::Find(const T& key)
+//{
+//	if (_root == NULL)
+//	{
+//		return NULL;
+//	}
+//
+//	Node* cur = _root;
+//	while (cur)
+//	{
+//		if (cur->_data > key)
+//		{
+//			cur = cur->_left;
+//		}
+//		else if (cur->_data < key)
+//		{
+//			cur = cur->_right;
+//		}
+//		else
+//		{
+//			cout << "find it" << endl;
+//			return cur;
+//		}
+//	}
+//
+//	cout << "Not find it" << endl;
+//	return false;
+//}
+//
+//
+//
+//template<class K, class V>
+//bool  BinsearchTreeKV<K, V>::Remove(const T& key)
+//{
+//	if (_root == NULL)
+//	{
+//		cout << "没有数据可以删除" << endl;
+//		return NULL;
+//	}
+//
+//	Node* cur = _root;
+//	Node* parent = NULL;
+//
+//	while (cur)
+//	{
+//		if (cur->_data > key)
+//		{
+//			parent = cur;
+//			cur = cur->_left;
+//		}
+//		else if (cur->_data < key)
+//		{
+//			parent = cur;
+//			cur = cur->_right;
+//		}
+//		else  //找到要删除的对象
+//		{
+//			Node* del = cur;
+//			if (cur->_left == NULL) //左孩子不存在
+//			{
+//				if (parent == NULL)
+//				{
+//					_root = cur->_right;
+//				}
+//				else
+//				{
+//					if (parent->_left == cur)
+//					{
+//						parent->_left = cur->_right;
+//					}
+//					else
+//					{
+//						parent->_right = cur->_right;
+//					}
+//				}
+//			}
+//			else if (cur->_right == NULL) //右孩子不存在
+//			{
+//				if (parent == NULL) //当前要删除的节点就是根节点
+//				{
+//					_root = cur->_left;
+//				}
+//				else //不是根节点的情况
+//				{
+//					if (parent->_left == cur) //主要看cur的左孩子连在cur父亲节点的左还是右；
+//					{
+//						parent->_left = cur->_left;
+//					}
+//					else
+//					{
+//						parent->_right = cur->_left;
+//					}
+//				}
+//			}
+//			else  //左右孩子都存在
+//			{
+//				parent = cur;
+//				Node* firstleft = cur->_right;
+//				while (firstleft->_left)
+//				{
+//					parent = firstleft;
+//					firstleft = firstleft->_left;
+//				}
+//
+//				swap(cur->_data, firstleft->_data);
+//				del = firstleft;
+//
+//				if (parent->_left == firstleft)
+//				{
+//					parent->_left = firstleft->_right;
+//				}
+//				else
+//				{
+//					parent->_right = firstleft->_right;
+//				}
+//			}
+//
+//			delete del;
+//			return true;
+//		}
+//	}
+//
+//	cout << "二叉搜索树中没有和key值相等的节点" << endl;
+//	return false;
+//}
+
+
+
+//************************************************************    AVLTree   *************************************************************************//
+//*************************************************   1.满足左右子树都是二叉搜索树  *****************************************************//
+//*************************************************   2.左右子树高度差不超过1   *********************************************************//
+//*************************************************   2.左右子树高度都是AVLTree   *******************************************************//
+//************************   3.每个节点都有一个平衡因子(balance factor--bf),任一节点的平衡因子是-1,0,1。   ******************************//
+
+
+
+template<class K,class V>
+struct AVLTreeNode
+{
+	AVLTreeNode<K, V>* _parent;
+	AVLTreeNode<K, V>* _left;
+	AVLTreeNode<K, V>* _right;
+
+	K _key;
+	V _value;
+	int _bf();  //平衡因子
+
+	AVLTreeNode(const K& key, const V& value)
+		:_parent(NULL)
+		, _left(NULL)
+		, _right(NULL)
+		, _key(key)
+		, _value(value)
+		, _bf(0)
+	{}
+};
+
+
+template<class K,class V>
+class AVLTree
+{
+	typedef AVLTreeNode<K, V> Node;
+public:
+	AVLTree()
+		:_root(NULL)
+	{}
+
+	bool Insert(const K& key, const V& value);
+protected:
+	void _RotateL(Node*& parent)
+	{
+		Node* subR = parent->_right;
+		Node* subRleft = subR->_left;
+
+		parent->_right = subRleft;
+		if (subRleft)
+		{
+			subRleft->_parent = parent;
+		}
+		subR->_left = parent;
+
+		subR->_parent = parent->_parent;
+		parent->_parent = subR;
+
+		parent->_bf = 0;
+		subR->_bf = 0;
+
+		parent = subR;
+	}
+
+	void _RotateR(Node*& parent)
+	{
+		Node* subL = parent->_left;
+		Node* SubLright = subL->_right;
+
+		parent->_left = SubLright;
+		if (SubLright)
+		{
+			SubLright->_parent = parent;
+
+		}
+		subL->_right = parent;
+		subL->_parent = parent->_parent;
+		parent->_parent = subL;
+
+		parent->_bf = 0;
+		subL->_bf = 0;
+
+		parent = subL;
+	}
+
+	void _RotateRL(Node*& parent)
+	{
+		Node* pNode = parent;
+		Node* subLNode = parent->_left;
+		Node* subLRNode = subLNode->_right;
+
+		int bf = subLRNode->_bf;
+		_RotateR(parent->_right);
+		_RotateL(parent);
+
+		if (bf == -1)
+		{
+			subLNode->_bf = 0;
+			pNode->_bf = 1;
+		}
+		else if (bf == 1)
+		{
+			subLNode->_bf = -1;
+			pNode->_bf = 0;
+		}
+		else
+		{
+			subLNode->_bf = 0;
+			pNode->_bf = 0;
+		}
+	}
+
+	void _RotateLR(Node*& parent)
+	{
+		Node* pNode = parent;
+		Node* subRNode = parent->_right;
+		Node* subRLNode = subRNode->_left;
+		int bf = subRLNode->_bf;
+
+		_RotateL(parent->_left);
+		_RotateR(parent);
+
+		if (bf == -1)
+		{
+			subRNode->_bf = 0;
+			pNode->_bf = -1;
+		}
+		else if (bf == 1)
+		{
+			subRNode->_bf = 1;
+			pNode->_bf = 0;
+		}
+		else
+		{
+			subRNode->_bf = 0;
+			pNode->_bf = 0;
+		}
+	}
+
+protected:
+	Node* _root;
+};
+
+
+//**************************************AVLTree是为了解决二叉搜索树极端情况下效率低得问题*********************************************//
+template<class K,class V>
+bool AVLTree<K, V>::Insert(const K& key, const V& value)
+{
+	if (_root == NULL)                //处理没有节点的情况
+	{
+		_root = new Node(key, value);
+		cout << "this is first data" << endl;
+		return true;
+	}
+
+	Node* cur = _root;
+	Node* parent = NULL;
+	while (cur)                         //当有多个节点，找到需要插入的位置
+	{
+		if (cur->_key > key)
+		{
+			cur = cur->_left;
+		}
+		else if (cur->_key < key)
+		{
+			cur = cur->_right;
+		}
+		else
+		{
+			cout << "待插入的数据已经存在" << endl;
+			return false;
+		}
+	}
+
+	Node* tmp = new Node(key, value);       //插入数据
+	if (parent->_key > key)
+	{
+		parent->_left = tmp;
+		tmp->_parent = parent;
+	}
+	else
+	{
+		parent->_right = tmp;
+		tmp->_parent = parent;
+	}
+
+	//调节平衡因子，从插入的地方开始进行调整平衡因子，平衡因子为啥呢只有-1,0,1三个状态，因为二叉结构的孩子情况只有三种，第一种，没有孩子（0）
+	//第二种，只有左孩子（-1），第三种，只有右孩子（1）
+
+	bool isRotate = false; 
+	cur = tmp;
+	parent = cur->_parent;
+
+	while (parent)
+	{
+		if (parent->_left == cur)//先对父亲结点的平衡因子进行处理
+		{
+			--parent->_bf;
+		}
+		else if
+		{
+			++parent->_bf;
+		}
+
+
+		if (parent->_bf == 0)  //插入后，使得左右孩子都存在，这种情况不会使树的高度增加，所以不用调整。
+		{						//也有可能是调整后父亲节点的平衡因子变成了0；
+			break;
+		}
+		else if (parent->_bf == -1 || parent->_bf == 1) //插入后，左孩子或者右孩子存在一个，可能会导致破坏已经调整好的AVLTree；
+		{												//向上调整；
+			cur = parent;
+			parent = cur->_parent;
+		}
+		else        //插入后parent->_bf == -2 || parent->_bf == 2
+		{
+			if (parent->_bf == -2)
+			{
+				if (cur->_bf == -1)
+				{
+					_RotateR(parent);
+				}
+				else
+				{
+					_RotateLR(parent);
+				}
+			}
+			else
+			{
+				if (cur->_bf == 1)
+				{
+					_RotateL(parent);
+				}
+				else
+				{
+					_RotateRL(parent);
+				}
+			}
+			isRotate = true;
+			break;
+		}
+	}
+
+
+	if (isRotate)
+	{
+		Node* ppNode = parent->_parent;
+		if (ppNode == NULL)
+		{
+			_root = parent;
+		}
+		else if (ppNode->_key > parent->_key)
+		{
+			ppNode->_left = parent;
+		}
+		else
+		{
+			ppNode->_right = parent;
+		}
+	}
+}
+
+
+//****************************************************二叉树的结构/定义**************************************************************//
+//****************************************************二叉树的结构/定义**************************************************************//
+//****************************************************二叉树的结构/定义**************************************************************//
+
+#include<queue>
+template<class T>
+struct BinaryTreeNode
+{
+	BinaryTreeNode<T>* _left;
+	BinaryTreeNode<T>* _right;
+
+	T _data;
+
+	BinaryTreeNode(const T& x)
+		:_left(NULL)
+		, _right(NULL)
+		, _data(x)
+	{}
+};
+
+
+template<class T>
+class BinaryTree
+{
+	typedef BinaryTreeNode<T> Node;
+public:
+	BinaryTree()
+		:_root(NULL)
+	{}
+
+	~BinaryTree()
+	{}
+
+	BinaryTree(const T* a, size_t size, const T& invaild)
+	{
+		size_t index = 0;
+		_root = _BinaryTree(a, size, index, invaild);//递归构建左右子树
+	}
+
+	BinaryTree(const BinaryTree<T>& t);
+	
+	void PrevOrder()   //前序遍历
+	{
+		_PrevOrder(_root);
+		cout << endl;
+	}
+	
+	void InOrder()  //中序遍历
+	{
+		_InOrder(_root);
+		cout << endl;
+	}
+	
+	void NextOrder() //后序遍历
+	{
+		_NextOrder(_root);
+		cout << endl;
+	}
+	
+	void LevelOrder() //层序遍历
+	{
+		_LevelOrder(_root);
+		cout << endl;
+	}
+	
+	size_t Size()   //二叉树中总共有多少个节点
+	{
+		return _Size(_root);
+	}
+	
+	size_t Depth()    //二叉树的深度
+	{
+		_Depth(_root);
+	}
+	
+	size_t leafsize();
+	
+	size_t GetKLevel(int k);
+protected:
+	Node* _BinaryTree(const T* a, size_t size, size_t& index, const T& invaild)
+	{
+		Node* root = NULL;
+		if (index < size && a[index] != invaild)
+		{
+			root = new Node(a[index]);
+			root->_left = _BinaryTree(a, size, ++index, invaild);
+			root->_right = _BinaryTree(a, size, ++index, invaild);
+		}
+		return root;
+	}
+
+	void _PrevOrder(Node* root)
+	{
+		if (root == NULL)
+		{
+			return;
+		}
+
+		cout << root->_data << " ";
+		_PrevOrder(root->_left);
+		_PrevOrder(root->_right);
+	}
+
+	void _InOrder(Node* root)
+	{
+		if (root == NULL)
+		{
+			return;
+		}
+
+		_InOrder(root->_left);
+		cout << root->_data << " ";
+		_InOrder(root->_right);
+	}
+
+	void _NextOrder(Node* root)
+	{
+		if (root == NULL)
+			return;
+
+		_NextOrder(root->_left);
+		_NextOrder(root->_right);
+		cout << root->_data << " ";
+	}
+	
+
+	void _LevelOrder(Node* root)
+	{
+		if (root == NULL)
+		{
+			return;
+		}
+		
+		queue<Node*> q;
+		q.push(root);
+
+		while (q.empty())
+		{
+			Node* cur = q.front();
+			q.pop();
+			cout << cur->_data << " ";
+
+			if (cur->_left != NULL)
+			{
+				q.push(cur->_left);
+			}
+			
+			if (cur->_right != NULL)
+			{
+				q.push(cur->_right);
+			}
+		}
+	}
+	
+	size_t _Size(Node* root)
+	{
+		if (root == NULL)
+			return 0;
+
+		return _Size(root->_left) + _Size(root->_right) + 1;
+	}
+
+	size_t _Depth(Node* root)
+	{
+		if (root == NULL)
+			return 0;
+
+		size_t leftdepth = _Depth(root->_left);
+		size_t rightdepth = _Depth(root->_right);
+
+		return leftdepth > rightdepth ? leftdepth + 1 : rightdepth + 1;
+	}
+
+
+protected:
+	Node* _root;
+};
+
+
+
+
+
+
+
+
+
